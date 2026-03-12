@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Anime — AnimeSense AI</title>
+    <meta name="description"
+        content="Search 50,000+ anime titles with detailed info. Explore anime synopses, episodes, ratings, and studios.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/search.css">
+</head>
+
+<body>
+    <div class="bg-animation">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+    </div>
+
+    <nav class="navbar scrolled" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+                <span class="logo-text">Anime<span class="logo-accent">Sense</span></span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="chat.html" class="nav-link">AI Chat</a>
+                <a href="search.html" class="nav-link active">Search</a>
+                <a href="watchlist.html" class="nav-link">Watchlist</a>
+            </div>
+            <div class="nav-actions">
+                <a href="chat.html" class="btn btn-primary btn-nav"><i class="fas fa-comments"></i><span>AI
+                        Chat</span></a>
+                <button class="mobile-menu-btn" id="mobileMenuBtn"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="search-page">
+        <div class="search-container">
+            <div class="search-hero animate-fade-in-up">
+                <h1>Discover <span class="gradient-text">Anime</span></h1>
+                <p>Search through an extensive database of anime titles, get detailed information, and add to your
+                    watchlist.</p>
+                <div class="search-bar-wrapper">
+                    <i class="fas fa-search search-bar-icon"></i>
+                    <input type="text" class="search-bar" id="searchInput" placeholder="Search anime titles..."
+                        autocomplete="off">
+                    <button class="search-bar-btn" id="searchBtn" onclick="performSearch()">Search</button>
+                </div>
+                <div class="search-filters" id="genreFilters">
+                    <button class="filter-chip active" data-genre="all">All</button>
+                    <button class="filter-chip" data-genre="1">Action</button>
+                    <button class="filter-chip" data-genre="2">Adventure</button>
+                    <button class="filter-chip" data-genre="4">Comedy</button>
+                    <button class="filter-chip" data-genre="8">Drama</button>
+                    <button class="filter-chip" data-genre="10">Fantasy</button>
+                    <button class="filter-chip" data-genre="14">Horror</button>
+                    <button class="filter-chip" data-genre="7">Mystery</button>
+                    <button class="filter-chip" data-genre="22">Romance</button>
+                    <button class="filter-chip" data-genre="24">Sci-Fi</button>
+                    <button class="filter-chip" data-genre="36">Slice of Life</button>
+                </div>
+            </div>
+
+            <!-- Trending -->
+            <div id="trendingSection">
+                <div class="search-results-header">
+                    <h2><i class="fas fa-fire"
+                            style="color:var(--anime-orange);margin-right:var(--space-2)"></i>Trending Now</h2>
+                </div>
+                <div class="search-results-grid" id="trendingGrid">
+                    <div class="skeleton skeleton-card"></div>
+                    <div class="skeleton skeleton-card"></div>
+                    <div class="skeleton skeleton-card"></div>
+                    <div class="skeleton skeleton-card"></div>
+                    <div class="skeleton skeleton-card"></div>
+                </div>
+            </div>
+
+            <!-- Search Results -->
+            <div id="searchResultsSection" style="display:none">
+                <div class="search-results-header">
+                    <h2>Search Results</h2>
+                    <span class="results-count" id="resultsCount"></span>
+                </div>
+                <div class="search-results-grid" id="searchResultsGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="anime-detail-overlay" id="animeDetailOverlay" onclick="closeAnimeDetail(event)">
+        <div class="anime-detail" id="animeDetail"></div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/animations.js"></script>
+    <script src="js/anime-api.js"></script>
+    <script src="js/search.js"></script>
+</body>
+
+</html>

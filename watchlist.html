@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Watchlist — AnimeSense AI</title>
+    <meta name="description" content="Track your anime watchlist. Never miss a new episode release.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/watchlist.css">
+</head>
+
+<body>
+    <div class="bg-animation">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+    </div>
+    <nav class="navbar scrolled" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+                <span class="logo-text">Anime<span class="logo-accent">Sense</span></span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="chat.html" class="nav-link">AI Chat</a>
+                <a href="search.html" class="nav-link">Search</a>
+                <a href="watchlist.html" class="nav-link active">Watchlist</a>
+            </div>
+            <div class="nav-actions">
+                <a href="search.html" class="btn btn-primary btn-nav"><i class="fas fa-plus"></i><span>Add
+                        Anime</span></a>
+                <button class="mobile-menu-btn" id="mobileMenuBtn"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="watchlist-page">
+        <div class="watchlist-container">
+            <div class="watchlist-header animate-fade-in-up">
+                <h1><i class="fas fa-bookmark" style="color:var(--primary-light);margin-right:var(--space-3)"></i>My
+                    Watchlist</h1>
+                <div style="display:flex;gap:var(--space-3)">
+                    <button class="btn btn-glass btn-sm" onclick="exportWatchlist()"><i class="fas fa-download"></i>
+                        Export</button>
+                    <a href="search.html" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Anime</a>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="watchlist-stats animate-fade-in-up delay-1">
+                <div class="wl-stat-card">
+                    <div class="wl-stat-icon watching"><i class="fas fa-play"></i></div>
+                    <div>
+                        <div class="wl-stat-number" id="watchingCount">0</div>
+                        <div class="wl-stat-label">Watching</div>
+                    </div>
+                </div>
+                <div class="wl-stat-card">
+                    <div class="wl-stat-icon completed"><i class="fas fa-check"></i></div>
+                    <div>
+                        <div class="wl-stat-number" id="completedCount">0</div>
+                        <div class="wl-stat-label">Completed</div>
+                    </div>
+                </div>
+                <div class="wl-stat-card">
+                    <div class="wl-stat-icon planned"><i class="fas fa-clock"></i></div>
+                    <div>
+                        <div class="wl-stat-number" id="plannedCount">0</div>
+                        <div class="wl-stat-label">Plan to Watch</div>
+                    </div>
+                </div>
+                <div class="wl-stat-card">
+                    <div class="wl-stat-icon total"><i class="fas fa-heart"></i></div>
+                    <div>
+                        <div class="wl-stat-number" id="totalCount">0</div>
+                        <div class="wl-stat-label">Total</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="watchlist-tabs animate-fade-in-up delay-2" id="watchlistTabs">
+                <button class="wl-tab active" data-filter="all">All</button>
+                <button class="wl-tab" data-filter="watching">Watching</button>
+                <button class="wl-tab" data-filter="completed">Completed</button>
+                <button class="wl-tab" data-filter="plan-to-watch">Plan to Watch</button>
+                <button class="wl-tab" data-filter="dropped">Dropped</button>
+            </div>
+
+            <!-- Grid -->
+            <div class="watchlist-grid animate-fade-in-up delay-3" id="watchlistGrid"></div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState" style="display:none">
+                <div class="empty-state-icon"><i class="fas fa-bookmark"></i></div>
+                <h3>Your watchlist is empty</h3>
+                <p>Start by searching for anime and adding them to your watchlist to track your progress.</p>
+                <a href="search.html" class="btn btn-primary"><i class="fas fa-search"></i> Browse Anime</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/animations.js"></script>
+    <script src="js/anime-api.js"></script>
+    <script src="js/watchlist.js"></script>
+</body>
+
+</html>

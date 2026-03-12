@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat — AnimeSense AI</title>
+    <meta name="description"
+        content="Chat with AnimeSense AI to get instant answers about anime series, characters, episodes, and storylines.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/chat.css">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <div class="bg-animation">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+    </div>
+
+    <nav class="navbar scrolled" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+                <span class="logo-text">Anime<span class="logo-accent">Sense</span></span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="chat.html" class="nav-link active">AI Chat</a>
+                <a href="search.html" class="nav-link">Search</a>
+                <a href="watchlist.html" class="nav-link">Watchlist</a>
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+            </div>
+            <div class="nav-actions">
+                <!-- Auth: Login Button -->
+                <button class="auth-nav-login" id="authLoginBtn" onclick="FirebaseAuth.openModal('login')">
+                    <i class="fas fa-user"></i>
+                    <span>Login</span>
+                </button>
+                <!-- Auth: User Section -->
+                <div class="auth-user-section" id="authUserSection">
+                    <a href="dashboard.html" class="auth-user-avatar" id="authUserAvatar" title="Dashboard"></a>
+                    <span class="auth-user-name" id="authUserName"></span>
+                    <button class="auth-logout-btn"
+                        onclick="FirebaseAuth.logoutUser().then(()=>location.href='index.html')">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="chat-layout">
+        <!-- Sidebar -->
+        <aside class="chat-sidebar" id="chatSidebar">
+            <div class="sidebar-header">
+                <h3>Chat History</h3>
+                <button class="btn-ghost btn-icon" onclick="toggleSidebar()" aria-label="Close sidebar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <button class="new-chat-btn" id="newChatBtn" onclick="startNewChat()">
+                <i class="fas fa-plus"></i> New Chat
+            </button>
+            <div class="sidebar-mode-chips">
+                <button class="mode-chip active" data-mode="general">General</button>
+                <button class="mode-chip" data-mode="analysis">Deep Analysis</button>
+                <button class="mode-chip" data-mode="recap">Recap Mode</button>
+                <button class="mode-chip" data-mode="recommend">Recommend</button>
+            </div>
+            <div class="chat-history" id="chatHistory"></div>
+            <div class="sidebar-footer">
+                <i class="fas fa-microchip" style="color:var(--primary-light)"></i>
+                <span style="font-size:var(--fs-xs);color:var(--text-tertiary)">Jikan API · OpenRouter · Groq</span>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="chat-main">
+            <div class="chat-header">
+                <button class="toggle-sidebar-btn" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="chat-header-info">
+                    <h2>AnimeSense AI</h2>
+                    <p>Ask anything about anime</p>
+                </div>
+                <button class="btn btn-glass btn-sm" onclick="clearChat()" id="clearChatBtn" style="display:none">
+                    <i class="fas fa-trash-alt"></i> Clear
+                </button>
+            </div>
+
+            <!-- Auth Gate (shown when not logged in) -->
+            <div class="chat-auth-gate" id="chatAuthGate">
+                <div class="auth-gate-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h2>Sign In to Chat</h2>
+                <p>Create a free account or sign in with Google to start chatting with AnimeSense AI. Your history and
+                    preferences will be saved.</p>
+                <div class="auth-gate-btns">
+                    <button class="btn btn-primary" onclick="FirebaseAuth.openModal('login')">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </button>
+                    <button class="btn btn-glass" onclick="FirebaseAuth.openModal('signup')">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                </div>
+            </div>
+
+            <!-- Welcome -->
+            <div class="chat-welcome" id="chatWelcome">
+                <div class="welcome-icon animate-float"><i class="fas fa-bolt"></i></div>
+                <h2 class="animate-fade-in-up">Welcome to AnimeSense AI</h2>
+                <p class="animate-fade-in-up delay-1">Your intelligent anime companion. Ask me anything about anime —
+                    from episode details to deep storyline analysis.</p>
+                <div class="suggestion-chips animate-fade-in-up delay-2">
+                    <div class="suggestion-chip"
+                        onclick="askSuggestion('How many episodes does Naruto Shippuden have?')">
+                        <i class="fas fa-list-ol"></i>
+                        <span>How many episodes does Naruto Shippuden have?</span>
+                    </div>
+                    <div class="suggestion-chip" onclick="askSuggestion('Explain the ending of Death Note')">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Explain the ending of Death Note</span>
+                    </div>
+                    <div class="suggestion-chip" onclick="askSuggestion('Recommend anime similar to Attack on Titan')">
+                        <i class="fas fa-star"></i>
+                        <span>Recommend anime similar to Attack on Titan</span>
+                    </div>
+                    <div class="suggestion-chip" onclick="askSuggestion('Anime personality test')">
+                        <i class="fas fa-masks-theater"></i>
+                        <span>Take the Anime Personality Test</span>
+                    </div>
+                    <div class="suggestion-chip" onclick="askSuggestion('Goku vs Saitama')">
+                        <i class="fas fa-burst"></i>
+                        <span>Goku vs Saitama — Power Arena</span>
+                    </div>
+                    <div class="suggestion-chip" onclick="askSuggestion('Start anime quiz')">
+                        <i class="fas fa-gamepad"></i>
+                        <span>Take the Anime Quiz Challenge</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="chat-messages" id="chatMessages" style="display:none">
+                <div class="chat-messages-inner" id="chatMessagesInner"></div>
+            </div>
+
+            <!-- Input -->
+            <div class="chat-input-area">
+                <div class="chat-input-wrapper">
+                    <textarea class="chat-input" id="chatInput" placeholder="Ask about any anime..." rows="1"
+                        maxlength="2000"></textarea>
+                    <button class="chat-send-btn" id="chatSendBtn" onclick="sendMessage()" disabled
+                        aria-label="Send message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <p class="chat-disclaimer">Powered by Jikan API + OpenRouter + Groq AI. Responses are AI-generated and
+                    may not always be 100% accurate.
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/firebase-auth.js"></script>
+    <script src="js/firebase-db.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/anime-api.js"></script>
+    <script src="js/anime-knowledge.js"></script>
+    <script src="js/anime-graph.js"></script>
+    <script src="js/entity-detector.js"></script>
+    <script src="js/personality-test.js"></script>
+    <script src="js/power-arena.js"></script>
+    <script src="js/anime-quiz.js"></script>
+    <script src="js/llm-router.js"></script>
+    <script src="js/chat.js"></script>
+</body>
+
+</html>

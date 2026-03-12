@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnimeSense AI — Your Intelligent Anime Assistant</title>
+    <meta name="description"
+        content="AnimeSense AI is an AI-powered assistant for anime fans. Get instant answers about anime series, characters, episodes, and storylines.">
+    <meta name="keywords"
+        content="anime, AI assistant, anime search, anime recommendations, anime episodes, anime watchlist">
+    <meta name="theme-color" content="#0a0a1a">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/landing.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/discovery.css">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+        <div class="bg-particles" id="particles"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <div class="logo-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <span class="logo-text">Anime<span class="logo-accent">Sense</span></span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="nav-link active">Home</a>
+                <a href="chat.html" class="nav-link">AI Chat</a>
+                <a href="search.html" class="nav-link">Search</a>
+                <a href="watchlist.html" class="nav-link">Watchlist</a>
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+            </div>
+            <div class="nav-actions">
+                <!-- Auth: Login Button (visible when logged out) -->
+                <button class="auth-nav-login" id="authLoginBtn" onclick="FirebaseAuth.openModal('login')">
+                    <i class="fas fa-user"></i>
+                    <span>Login</span>
+                </button>
+                <!-- Auth: User Section (visible when logged in) -->
+                <div class="auth-user-section" id="authUserSection">
+                    <a href="dashboard.html" class="auth-user-avatar" id="authUserAvatar" title="Dashboard"></a>
+                    <span class="auth-user-name" id="authUserName"></span>
+                    <button class="auth-logout-btn"
+                        onclick="FirebaseAuth.logoutUser().then(()=>location.href='index.html')">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+                <a href="chat.html" class="btn btn-primary btn-nav">
+                    <i class="fas fa-comments"></i>
+                    <span>Start Chat</span>
+                </a>
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-container">
+            <div class="hero-badge animate-fade-in">
+                <i class="fas fa-sparkles"></i>
+                <span>AnimeSense AI v10 — Full Anime Intelligence Platform</span>
+            </div>
+            <h1 class="hero-title animate-fade-in-up">
+                Your Ultimate
+                <span class="gradient-text">Anime AI</span>
+                Assistant
+            </h1>
+            <p class="hero-subtitle animate-fade-in-up delay-1">
+                Ask anything about anime — from episode details to deep storyline analysis.
+                AnimeSense AI understands your questions and delivers instant, expert-level answers.
+            </p>
+            <div class="hero-actions animate-fade-in-up delay-2">
+                <a href="chat.html" class="btn btn-primary btn-lg">
+                    <i class="fas fa-robot"></i>
+                    <span>Ask AI Assistant</span>
+                </a>
+                <a href="search.html" class="btn btn-glass btn-lg">
+                    <i class="fas fa-search"></i>
+                    <span>Explore Anime</span>
+                </a>
+            </div>
+            <div class="hero-stats animate-fade-in-up delay-3">
+                <div class="stat">
+                    <span class="stat-number" data-count="50000">0</span><span class="stat-suffix">+</span>
+                    <span class="stat-label">Anime Titles</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-number" data-count="100">0</span><span class="stat-suffix">K+</span>
+                    <span class="stat-label">Episodes Indexed</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-number" data-count="99">0</span><span class="stat-suffix">%</span>
+                    <span class="stat-label">Accuracy</span>
+                </div>
+            </div>
+        </div>
+        <!-- Hero Visual -->
+        <div class="hero-visual animate-fade-in delay-2">
+            <div class="chat-preview">
+                <div class="chat-preview-header">
+                    <div class="chat-preview-dot"></div>
+                    <div class="chat-preview-dot"></div>
+                    <div class="chat-preview-dot"></div>
+                    <span>AnimeSense AI Chat</span>
+                </div>
+                <div class="chat-preview-body">
+                    <div class="chat-preview-msg user-msg">
+                        <span>Explain the ending of Attack on Titan</span>
+                    </div>
+                    <div class="chat-preview-msg ai-msg typing-animation">
+                        <div class="ai-avatar-small"><i class="fas fa-bolt"></i></div>
+                        <div class="msg-content">
+                            <span class="typing-text">The ending of Attack on Titan reveals that Eren's true plan was to
+                                ensure his friends' freedom by becoming the world's enemy. Through the Rumbling, he
+                                aimed to...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="section-container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-badge">Features</span>
+                <h2 class="section-title">Everything an Anime Fan <span class="gradient-text">Needs</span></h2>
+                <p class="section-subtitle">Powered by advanced AI to deliver the most comprehensive anime experience
+                </p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card animate-on-scroll" data-delay="0">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>AI Chat Assistant</h3>
+                    <p>Ask anything about anime — get instant, intelligent, context-aware answers from our AI expert.
+                    </p>
+                    <a href="chat.html" class="feature-link">Try it now <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="feature-card animate-on-scroll" data-delay="100">
+                    <div class="feature-icon">
+                        <i class="fas fa-magnifying-glass"></i>
+                    </div>
+                    <h3>Find Anime by Description</h3>
+                    <p>Describe any anime from memory and let AI identify it. "Anime where a boy eats a cursed
+                        finger..."</p>
+                    <a href="chat.html?q=Anime+where+humans+fight+giants+behind+walls" class="feature-link">Identify
+                        anime <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="feature-card animate-on-scroll" data-delay="200">
+                    <div class="feature-icon">
+                        <i class="fas fa-burst"></i>
+                    </div>
+                    <h3>Character Battles</h3>
+                    <p>Pit any two anime characters against each other for AI-powered battle analysis with power
+                        scaling.</p>
+                    <a href="chat.html?q=Goku+vs+Saitama" class="feature-link">Start battle <i
+                            class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="feature-card animate-on-scroll" data-delay="300">
+                    <div class="feature-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <h3>Anime Quiz</h3>
+                    <p>Test your anime knowledge with synopsis-based trivia. Track your score and compete with yourself!
+                    </p>
+                    <a href="chat.html?q=Anime+quiz" class="feature-link">Play quiz <i
+                            class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="feature-card animate-on-scroll" data-delay="400">
+                    <div class="feature-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <h3>Watch Tracker</h3>
+                    <p>Track everything you've watched with stats — total episodes, average score, and genre breakdown.
+                    </p>
+                    <a href="chat.html?q=Show+my+watchlist" class="feature-link">My watchlist <i
+                            class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="feature-card animate-on-scroll" data-delay="500">
+                    <div class="feature-icon">
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                    </div>
+                    <h3>Smart Recommendations</h3>
+                    <p>Get personalized suggestions based on your watch history, genres, and search patterns.</p>
+                    <a href="chat.html?q=Recommend+anime" class="feature-link">Get recs <i
+                            class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="feature-card animate-on-scroll" data-delay="600">
+                    <div class="feature-icon">
+                        <i class="fas fa-masks-theater"></i>
+                    </div>
+                    <h3>Deep Analysis</h3>
+                    <p>Explore themes, symbolism, character arcs, and philosophical interpretations of complex anime.
+                    </p>
+                    <a href="chat.html?q=Analyze+the+themes+of+Evangelion" class="feature-link">Analyze <i
+                            class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="feature-card animate-on-scroll" data-delay="700">
+                    <div class="feature-icon">
+                        <i class="fas fa-compass"></i>
+                    </div>
+                    <h3>Discovery Feed</h3>
+                    <p>Browse Trending, Top Rated, Hidden Gems, and Upcoming anime with interactive card galleries.</p>
+                    <a href="#discovery" class="feature-link">Discover <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="feature-card animate-on-scroll" data-delay="800">
+                    <div class="feature-icon">
+                        <i class="fas fa-id-badge"></i>
+                    </div>
+                    <h3>Personality Test</h3>
+                    <p>Discover your anime personality! Answer 7 questions and get personalized anime matches based on
+                        your traits.</p>
+                    <a href="chat.html?q=Anime+personality+test" class="feature-link">Take test <i
+                            class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="feature-card animate-on-scroll" data-delay="900">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-halved"></i>
+                    </div>
+                    <h3>Power Scaling Arena</h3>
+                    <p>Deep power scaling analysis with structured breakdowns — abilities, combat style, universe rules,
+                        and verdicts.</p>
+                    <a href="chat.html?q=Gojo+vs+Sukuna" class="feature-link">Start battle <i
+                            class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="section-container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-badge">How It Works</span>
+                <h2 class="section-title">Ask. Discover. <span class="gradient-text">Enjoy.</span></h2>
+                <p class="section-subtitle">Three simple steps to unlock the ultimate anime knowledge experience</p>
+            </div>
+            <div class="steps-container">
+                <div class="step-card animate-on-scroll" data-delay="0">
+                    <div class="step-number">01</div>
+                    <div class="step-icon"><i class="fas fa-comment-dots"></i></div>
+                    <h3>Ask Your Question</h3>
+                    <p>Type any anime-related question — from simple facts to deep storyline analysis.</p>
+                </div>
+                <div class="step-connector animate-on-scroll"><i class="fas fa-chevron-right"></i></div>
+                <div class="step-card animate-on-scroll" data-delay="200">
+                    <div class="step-number">02</div>
+                    <div class="step-icon"><i class="fas fa-microchip"></i></div>
+                    <h3>AI Processes</h3>
+                    <p>Our AI cross-references anime databases and applies intelligent reasoning to craft your answer.
+                    </p>
+                </div>
+                <div class="step-connector animate-on-scroll"><i class="fas fa-chevron-right"></i></div>
+                <div class="step-card animate-on-scroll" data-delay="400">
+                    <div class="step-number">03</div>
+                    <div class="step-icon"><i class="fas fa-sparkles"></i></div>
+                    <h3>Get Expert Answers</h3>
+                    <p>Receive structured, accurate, and detailed responses instantly — like talking to an anime expert.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Anime Discovery Feed -->
+    <section class="discovery-section" id="discovery">
+        <div class="section-container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-badge">Discover</span>
+                <h2 class="section-title">Anime <span class="gradient-text">Discovery Feed</span></h2>
+                <p class="section-subtitle">Explore trending, upcoming, and genre-curated anime — refreshed on every
+                    visit</p>
+            </div>
+            <div id="discoveryFeed"></div>
+        </div>
+    </section>
+
+    <!-- Sample Queries -->
+    <section class="sample-queries" id="sample-queries">
+        <div class="section-container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-badge">Try It Out</span>
+                <h2 class="section-title">What Can You <span class="gradient-text">Ask?</span></h2>
+                <p class="section-subtitle">Here are some examples of what AnimeSense AI can answer</p>
+            </div>
+            <div class="queries-grid">
+                <div class="query-card animate-on-scroll"
+                    onclick="window.location.href='chat.html?q=How+many+episodes+does+Naruto+have'">
+                    <div class="query-icon"><i class="fas fa-list-ol"></i></div>
+                    <p>"How many episodes does Naruto have?"</p>
+                    <span class="query-category">Facts & Info</span>
+                </div>
+                <div class="query-card animate-on-scroll"
+                    onclick="window.location.href='chat.html?q=Explain+the+ending+of+Attack+on+Titan'">
+                    <div class="query-icon"><i class="fas fa-lightbulb"></i></div>
+                    <p>"Explain the ending of Attack on Titan"</p>
+                    <span class="query-category">Story Analysis</span>
+                </div>
+                <div class="query-card animate-on-scroll"
+                    onclick="window.location.href='chat.html?q=Recommend+dark+psychological+anime'">
+                    <div class="query-icon"><i class="fas fa-star"></i></div>
+                    <p>"Recommend dark psychological anime"</p>
+                    <span class="query-category">Recommendations</span>
+                </div>
+                <div class="query-card animate-on-scroll"
+                    onclick="window.location.href='chat.html?q=When+will+the+next+episode+of+Demon+Slayer+release'">
+                    <div class="query-icon"><i class="fas fa-calendar"></i></div>
+                    <p>"When does Demon Slayer next episode release?"</p>
+                    <span class="query-category">Release Tracking</span>
+                </div>
+                <div class="query-card animate-on-scroll"
+                    onclick="window.location.href='chat.html?q=What+is+the+symbolism+in+Neon+Genesis+Evangelion'">
+                    <div class="query-icon"><i class="fas fa-masks-theater"></i></div>
+                    <p>"What's the symbolism in Evangelion?"</p>
+                    <span class="query-category">Deep Analysis</span>
+                </div>
+                <div class="query-card animate-on-scroll"
+                    onclick="window.location.href='chat.html?q=Give+me+a+recap+of+One+Piece+Wano+arc'">
+                    <div class="query-icon"><i class="fas fa-book-open"></i></div>
+                    <p>"Give me a recap of One Piece Wano arc"</p>
+                    <span class="query-category">Recaps</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="section-container">
+            <div class="cta-card animate-on-scroll">
+                <div class="cta-glow"></div>
+                <h2>Ready to Explore the Anime Universe?</h2>
+                <p>Join thousands of anime fans using AnimeSense AI to discover, track, and understand their favorite
+                    anime.</p>
+                <div class="cta-actions">
+                    <a href="chat.html" class="btn btn-primary btn-lg">
+                        <i class="fas fa-rocket"></i>
+                        <span>Start Using AnimeSense AI</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="nav-logo">
+                        <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+                        <span class="logo-text">Anime<span class="logo-accent">Sense</span></span>
+                    </div>
+                    <p>Your AI-powered anime companion. Instant answers, deep analysis, and smart recommendations for
+                        every anime fan.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Product</h4>
+                    <a href="chat.html">AI Chat</a>
+                    <a href="search.html">Anime Search</a>
+                    <a href="watchlist.html">Watchlist</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Features</h4>
+                    <a href="chat.html">Episode Summaries</a>
+                    <a href="chat.html">Recommendations</a>
+                    <a href="chat.html">Deep Analysis</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Connect</h4>
+                    <a href="#"><i class="fab fa-twitter"></i> Twitter</a>
+                    <a href="#"><i class="fab fa-discord"></i> Discord</a>
+                    <a href="#"><i class="fab fa-reddit"></i> Reddit</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 AnimeSense AI. Built for anime fans, by anime fans.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/firebase-auth.js"></script>
+    <script src="js/firebase-db.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/discovery.js"></script>
+</body>
+
+</html>

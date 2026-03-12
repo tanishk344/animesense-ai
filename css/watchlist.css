@@ -1,0 +1,268 @@
+/* AnimeSense AI — Watchlist Page */
+
+.watchlist-page {
+    position: relative;
+    z-index: var(--z-base);
+    min-height: 100vh;
+    padding-top: 100px;
+    padding-bottom: var(--space-16);
+}
+
+.watchlist-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 var(--space-6);
+}
+
+.watchlist-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-8);
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.watchlist-header h1 {
+    font-size: var(--fs-2xl);
+    font-weight: var(--fw-bold);
+}
+
+/* Stats Bar */
+.watchlist-stats {
+    display: flex;
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+    flex-wrap: wrap;
+}
+
+.wl-stat-card {
+    flex: 1;
+    min-width: 180px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.wl-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--fs-lg);
+}
+
+.wl-stat-icon.watching {
+    background: rgba(124, 58, 237, 0.15);
+    color: var(--primary-light);
+}
+
+.wl-stat-icon.completed {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+}
+
+.wl-stat-icon.planned {
+    background: rgba(6, 182, 212, 0.15);
+    color: var(--accent-light);
+}
+
+.wl-stat-icon.total {
+    background: rgba(236, 72, 153, 0.15);
+    color: #f472b6;
+}
+
+.wl-stat-number {
+    font-size: var(--fs-xl);
+    font-weight: var(--fw-bold);
+}
+
+.wl-stat-label {
+    font-size: var(--fs-xs);
+    color: var(--text-tertiary);
+}
+
+/* Watchlist Tabs */
+.watchlist-tabs {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+    padding: var(--space-1);
+    background: var(--surface-1);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    width: fit-content;
+}
+
+.wl-tab {
+    padding: var(--space-2) var(--space-5);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition-base);
+    border: none;
+    background: none;
+}
+
+.wl-tab:hover {
+    color: var(--text-primary);
+}
+
+.wl-tab.active {
+    background: var(--primary);
+    color: white;
+}
+
+/* Watchlist Grid */
+.watchlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-4);
+}
+
+.wl-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    display: flex;
+    gap: var(--space-4);
+    transition: var(--transition-base);
+}
+
+.wl-card:hover {
+    border-color: var(--border-accent);
+    transform: translateY(-2px);
+}
+
+.wl-card-poster {
+    width: 80px;
+    height: 115px;
+    min-width: 80px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    background: var(--surface-2);
+}
+
+.wl-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.wl-card-title {
+    font-size: var(--fs-base);
+    font-weight: var(--fw-semibold);
+    margin-bottom: var(--space-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wl-card-meta {
+    font-size: var(--fs-xs);
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-3);
+}
+
+.wl-progress {
+    margin-bottom: var(--space-3);
+}
+
+.wl-progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--surface-2);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-top: var(--space-1);
+}
+
+.wl-progress-fill {
+    height: 100%;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-full);
+    transition: var(--transition-base);
+}
+
+.wl-progress-text {
+    font-size: var(--fs-xs);
+    color: var(--text-secondary);
+}
+
+.wl-card-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+}
+
+.wl-action-btn {
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-xs);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: var(--transition-base);
+    background: none;
+    border: none;
+}
+
+.wl-action-btn:hover {
+    color: var(--primary-light);
+    background: var(--surface-2);
+}
+
+.wl-status-badge {
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-full);
+    font-size: 10px;
+    font-weight: var(--fw-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.wl-status-badge.watching {
+    background: rgba(124, 58, 237, 0.15);
+    color: var(--primary-light);
+    border: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+.wl-status-badge.completed {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.wl-status-badge.plan-to-watch {
+    background: rgba(6, 182, 212, 0.15);
+    color: var(--accent-light);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+.wl-status-badge.dropped {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+@media (max-width: 768px) {
+    .watchlist-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .watchlist-stats {
+        flex-direction: column;
+    }
+
+    .watchlist-tabs {
+        overflow-x: auto;
+        width: 100%;
+    }
+}

@@ -1,0 +1,339 @@
+/* ═══════════ ANIME DISCOVERY FEED ═══════════ */
+
+.discovery-section {
+    padding: var(--space-16) 0 var(--space-12);
+    position: relative;
+}
+
+.discovery-section .section-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 var(--space-6);
+}
+
+/* Category Row */
+.discovery-category {
+    margin-bottom: var(--space-12);
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-6);
+}
+
+.category-header h3 {
+    font-family: var(--font-primary);
+    font-size: var(--fs-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.category-header h3 i {
+    font-size: var(--fs-xl);
+}
+
+.category-header h3 .cat-icon-fire {
+    color: #ff6b35;
+}
+
+.category-header h3 .cat-icon-calendar {
+    color: #60a5fa;
+}
+
+.category-header h3 .cat-icon-star {
+    color: #fbbf24;
+}
+
+.category-header h3 .cat-icon-trophy {
+    color: #f59e0b;
+}
+
+.category-header h3 .cat-icon-gem {
+    color: #a78bfa;
+}
+
+.category-scroll-btn {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.category-scroll-btn button {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: var(--glass-bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(6px);
+}
+
+.category-scroll-btn button:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: scale(1.08);
+}
+
+/* Horizontal Scroll Container */
+.discovery-scroll {
+    display: flex;
+    gap: var(--space-5);
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding-bottom: var(--space-4);
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.discovery-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+/* Anime Card */
+.discovery-card {
+    min-width: 220px;
+    max-width: 220px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--glass-bg);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(12px);
+    transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.discovery-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: var(--primary-light);
+    box-shadow:
+        0 16px 40px rgba(124, 58, 237, 0.2),
+        0 0 0 1px rgba(124, 58, 237, 0.1);
+}
+
+.discovery-card-img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.discovery-card:hover .discovery-card-img {
+    transform: scale(1.06);
+}
+
+.discovery-card-img-wrap {
+    position: relative;
+    overflow: hidden;
+    height: 300px;
+}
+
+.discovery-card-score {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, rgba(250, 204, 21, 0.95), rgba(245, 158, 11, 0.95));
+    color: #1a1a2e;
+    font-size: var(--fs-xs);
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    box-shadow: 0 2px 8px rgba(250, 204, 21, 0.4);
+    z-index: 2;
+}
+
+.discovery-card-type {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(124, 58, 237, 0.9);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 2;
+}
+
+.discovery-card-gradient {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(to top, rgba(10, 10, 26, 0.95) 0%, transparent 100%);
+    z-index: 1;
+}
+
+.discovery-card-body {
+    padding: var(--space-4);
+}
+
+.discovery-card-title {
+    font-family: var(--font-primary);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.35;
+    margin-bottom: var(--space-2);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.discovery-card-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.discovery-card-meta span {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.discovery-card-synopsis {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: var(--space-3);
+}
+
+.discovery-card-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.discovery-genre-tag {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(124, 58, 237, 0.15);
+    color: var(--primary-light);
+    font-weight: 600;
+    border: 1px solid rgba(124, 58, 237, 0.2);
+}
+
+/* Loading Skeleton */
+.discovery-skeleton {
+    min-width: 220px;
+    max-width: 220px;
+    height: 420px;
+    border-radius: 16px;
+    background: var(--glass-bg);
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.skeleton-img {
+    width: 100%;
+    height: 300px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+.skeleton-text {
+    height: 14px;
+    margin: 12px 16px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+.skeleton-text.short {
+    width: 60%;
+}
+
+@keyframes skeleton-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* CTA Link under category */
+.category-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+    color: var(--primary-light);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.category-cta:hover {
+    color: var(--primary);
+    gap: var(--space-3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .discovery-card {
+        min-width: 180px;
+        max-width: 180px;
+    }
+
+    .discovery-card-img-wrap {
+        height: 250px;
+    }
+
+    .discovery-card-img {
+        height: 250px;
+    }
+
+    .category-header h3 {
+        font-size: var(--fs-xl);
+    }
+}
+
+@media (max-width: 480px) {
+    .discovery-card {
+        min-width: 160px;
+        max-width: 160px;
+    }
+
+    .discovery-card-img-wrap {
+        height: 220px;
+    }
+
+    .discovery-card-img {
+        height: 220px;
+    }
+}
