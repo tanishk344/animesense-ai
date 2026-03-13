@@ -426,10 +426,10 @@ async function handleCharacterBattle(query, entities) {
             ];
             const result = await LLMRouter.chat(messages, { maxTokens: 2000, temperature: 0.7 });
             response += `\n\n### 🧠 Battle Analysis\n\n${result.content}`;
-            response += `\n\n> 🤖 *Battle analysis by ${result.provider} (${result.model.split('/').pop()}) · Data from Jikan API*`;
+            response += `\n\n> 🤖 *Battle analysis by AnimeSense AI Analysis Engine*`;
         } catch (e) {
             response += `\n\n### 📊 Quick Take\n\nBoth ${e1.name} and ${e2.name} are iconic fighters from their respective universes. The outcome depends on which universe's rules apply — power scaling varies wildly across anime!`;
-            response += `\n\n> 📊 *Character data from Jikan API*`;
+            response += `\n\n> 📊 *Character data from AnimeSense Knowledge System*`;
         }
 
         return response;
@@ -480,7 +480,7 @@ async function handleSeasonQuery(query, entities) {
             response += `\n${anime.synopsis.slice(0, 400)}${anime.synopsis.length > 400 ? '...' : ''}`;
         }
 
-        response += `\n\n> 📺 *Live data from Jikan API*`;
+        response += `\n\n> 📺 *Live data from AnimeSense Data System*`;
         return response;
     } catch (e) {
         console.error('Season query error:', e);
@@ -627,12 +627,12 @@ async function handleDescribeAnime(query) {
         try {
             const result = await LLMRouter.chat(identifyMessages, { maxTokens: 1200, temperature: 0.6 });
             const kbTag = knowledgeMatch ? ' + Knowledge Base' : '';
-            return `## 🔍 Found: ${bestMatch.title}\n\n${result.content}\n\n> 🤖 *Identified by ${result.provider} · Jikan API${kbTag}*`;
+            return `## 🔍 Found: ${bestMatch.title}\n\n${result.content}\n\n> 🤖 *Identified by AnimeSense Intelligence Engine${kbTag}*`;
         } catch (e) {
             // Fallback: data-only response
             const g = (bestMatch.genres || []).map(g => g.name).join(', ') || '?';
             const s = (bestMatch.studios || []).map(s => s.name).join(', ') || '?';
-            return `## 🔍 Found: ${bestMatch.title}\n\n**This might be what you're looking for!**\n\n| Detail | Info |\n|---|---|\n| **Type** | ${bestMatch.type || '?'} |\n| **Episodes** | ${bestMatch.episodes || '?'} |\n| **Score** | ⭐ ${bestMatch.score || '?'}/10 |\n| **Genres** | ${g} |\n| **Studio** | ${s} |\n| **Year** | ${bestMatch.year || '?'} |\n\n${(bestMatch.synopsis || '').slice(0, 400)}\n\n> 🔍 *Identified from Jikan API*`;
+            return `## 🔍 Found: ${bestMatch.title}\n\n**This might be what you're looking for!**\n\n| Detail | Info |\n|---|---|\n| **Type** | ${bestMatch.type || '?'} |\n| **Episodes** | ${bestMatch.episodes || '?'} |\n| **Score** | ⭐ ${bestMatch.score || '?'}/10 |\n| **Genres** | ${g} |\n| **Studio** | ${s} |\n| **Year** | ${bestMatch.year || '?'} |\n\n${(bestMatch.synopsis || '').slice(0, 400)}\n\n> 🔍 *Identified by AnimeSense Knowledge System*`;
         }
     } catch (e) {
         console.error('Describe anime error:', e);
@@ -826,7 +826,7 @@ async function handleLLMQuery(query, queryType, anime) {
     try {
         const result = await LLMRouter.chat(messages, { maxTokens: 1500, temperature: 0.7 });
         const kbTag = (typeof AnimeKnowledge !== 'undefined' && AnimeKnowledge.lookup(anime.title)) ? ' + Knowledge Base' : '';
-        return result.content + `\n\n> 🤖 *AI analysis by ${result.provider} (${result.model.split('/').pop()}) · Jikan API${kbTag}*`;
+        return result.content + `\n\n> 🤖 *AI analysis by AnimeSense AI Analysis Engine${kbTag}*`;
     } catch (e) {
         console.error('LLM failed:', e);
         return await buildFullDetailResponse(anime, charData);
@@ -843,7 +843,7 @@ async function handleLLMDetail(query, anime) {
     ];
     try {
         const result = await LLMRouter.chat(messages, { maxTokens: 1800, temperature: 0.6 });
-        return result.content + `\n\n> 🤖 *${result.provider} · ${result.model.split('/').pop()} · Live data from Jikan API*`;
+        return result.content + `\n\n> 🤖 *AnimeSense Intelligence Engine · Live data from AnimeSense Data System*`;
     } catch (e) {
         return await buildFullDetailResponse(anime, charData);
     }
@@ -860,7 +860,7 @@ async function handleTrending(query) {
             ];
             try {
                 const result = await LLMRouter.chat(messages, { maxTokens: 1500, temperature: 0.6 });
-                return result.content + `\n\n> 🤖 *${result.provider} · Live trending data from Jikan API*`;
+                return result.content + `\n\n> 🤖 *AnimeSense Intelligence Engine · Live trending data from AnimeSense Data System*`;
             } catch (e) {
                 return buildTrendingFallback(results.data);
             }
@@ -895,7 +895,7 @@ async function handleRecommend(query) {
             ];
             try {
                 const result = await LLMRouter.chat(messages, { maxTokens: 1200, temperature: 0.8 });
-                return result.content + `\n\n> 🤖 *${result.provider} · Jikan API*`;
+                return result.content + `\n\n> 🤖 *AnimeSense Intelligence Engine · AnimeSense Data System*`;
             } catch (e) {
                 const list = results.data.slice(0, 5).map((a, i) => `${i + 1}. **${a.title}** — ⭐ ${a.score || '?'}/10 | ${a.episodes || '?'} eps\n   - ${(a.genres || []).map(g => g.name).join(', ')}`).join('\n\n');
                 return `## 🎯 ${(genreName || 'Top').charAt(0).toUpperCase() + (genreName || 'top').slice(1)} Recommendations\n\n${list}`;
@@ -916,7 +916,7 @@ async function handleRecommendSimilar(anime) {
             ];
             try {
                 const result = await LLMRouter.chat(messages, { maxTokens: 1200, temperature: 0.8 });
-                return result.content + `\n\n> 🤖 *${result.provider} · Jikan API*`;
+                return result.content + `\n\n> 🤖 *AnimeSense Intelligence Engine · AnimeSense Data System*`;
             } catch (e) { }
             const list = recs.data.slice(0, 5).map((r, i) => `${i + 1}. **${r.entry.title}** (${r.votes} votes)`).join('\n');
             return `## Anime Similar to ${anime.title}\n\n${list}`;
@@ -1049,14 +1049,14 @@ async function handleComparison(query, nameA, nameB) {
             const result = await LLMRouter.chat(messages, { maxTokens: 1500, temperature: 0.7 });
             const kbTag = (typeof AnimeKnowledge !== 'undefined' && (AnimeKnowledge.lookup(animeA.title) || AnimeKnowledge.lookup(animeB.title))) ? ' + Knowledge Base' : '';
             response += `\n\n### 🧠 AI Analysis\n\n${result.content}`;
-            response += `\n\n> 🤖 *AI comparison by ${result.provider} (${result.model.split('/').pop()}) · Jikan API${kbTag}*`;
+            response += `\n\n> 🤖 *AI comparison by AnimeSense AI Analysis Engine${kbTag}*`;
         } catch (e) {
             // Fallback — basic text comparison
             const winner = (animeA.score || 0) > (animeB.score || 0) ? animeA : animeB;
             response += `\n\n### 📊 Quick Take\n\n`;
             response += `**${winner.title}** leads with a higher MAL score (${winner.score}/10). `;
             response += `Both series have strong fan bases. ${animeA.title} leans toward *${g(animeA)}*, while ${animeB.title} focuses on *${g(animeB)}*.`;
-            response += `\n\n> 📊 *Comparison data from Jikan API*`;
+            response += `\n\n> 📊 *Comparison data from AnimeSense Data System*`;
         }
 
         return response;
@@ -1113,7 +1113,7 @@ async function handleSmartRecommend(query) {
                 if (userMemory.watched.length > 0) {
                     resp += `\n\n> 🧠 *Personalized based on your history: ${userMemory.watched.slice(-5).join(', ')}*`;
                 }
-                resp += `\n\n> 🤖 *${result.provider} · Jikan API*`;
+                resp += `\n\n> 🤖 *AnimeSense Intelligence Engine · AnimeSense Data System*`;
                 return resp;
             } catch (e) {
                 const list = animeList.slice(0, 5).map((a, i) => `${i + 1}. **${a.title}** — ⭐ ${a.score || '?'}/10 | ${a.episodes || '?'} eps\n   - ${(a.genres || []).map(g => g.name).join(', ')}`).join('\n\n');
@@ -1156,7 +1156,7 @@ async function handleGeneralLLM(query) {
 // ══════════ DATA-ONLY BUILDERS (fallback) ══════════
 
 function buildEpisodeResponse(a) {
-    return `## ${a.title}\n\n| Detail | Info |\n|---|---|\n| **Episodes** | ${a.episodes || 'Unknown (airing)'} |\n| **Status** | ${a.status} |\n| **Type** | ${a.type || 'TV'} |\n| **Aired** | ${a.aired?.string || 'Unknown'} |\n| **Studio** | ${(a.studios || []).map(s => s.name).join(', ') || 'Unknown'} |\n| **Score** | ⭐ ${a.score || 'N/A'}/10 |\n\n> 📺 *Live data from Jikan API*`;
+    return `## ${a.title}\n\n| Detail | Info |\n|---|---|\n| **Episodes** | ${a.episodes || 'Unknown (airing)'} |\n| **Status** | ${a.status} |\n| **Type** | ${a.type || 'TV'} |\n| **Aired** | ${a.aired?.string || 'Unknown'} |\n| **Studio** | ${(a.studios || []).map(s => s.name).join(', ') || 'Unknown'} |\n| **Score** | ⭐ ${a.score || 'N/A'}/10 |\n\n> 📺 *Live data from AnimeSense Data System*`;
 }
 
 function buildReleaseResponse(anime, all) {
@@ -1225,7 +1225,7 @@ async function buildFullDetailResponse(anime, existingChars) {
         r += `### 👥 Characters\n\n`;
         r += chars.filter(c => c.role === 'Main').slice(0, 6).map(c => { const va = c.voice_actors?.find(v => v.language === 'Japanese'); return `- **${c.character.name}** (${c.role})${va ? ' — VA: ' + va.person?.name : ''}`; }).join('\n');
     }
-    r += `\n\n> 🔗 *Live data from Jikan API*`;
+    r += `\n\n> 🔗 *Live data from AnimeSense Data System*`;
     return r;
 }
 
@@ -1237,7 +1237,7 @@ async function buildCharacterResponse(anime) {
             r += d.data.filter(c => c.role === 'Main').slice(0, 8).map(c => { const va = c.voice_actors?.find(v => v.language === 'Japanese'); return `- **${c.character.name}**${va ? '\n  - 🎤 VA: **' + va.person?.name + '**' : ''}`; }).join('\n');
             const sup = d.data.filter(c => c.role === 'Supporting').slice(0, 6);
             if (sup.length) { r += `\n\n### 🎭 Supporting\n\n` + sup.map(c => `- **${c.character.name}**`).join('\n'); }
-            r += `\n\n> 📊 ${d.data.length} characters total · Jikan API`;
+            r += `\n\n> 📊 ${d.data.length} characters total · AnimeSense Data System`;
             return r;
         }
     } catch (e) { }
@@ -1254,7 +1254,7 @@ function buildWatchOrderFallback(anime, allResults) {
 
 function buildTrendingFallback(data) {
     const list = data.map((a, i) => `${i + 1}. **${a.title}** — ⭐ ${a.score || 'N/A'}/10 | ${a.episodes || '?'} eps\n   - ${(a.genres || []).map(g => g.name).join(', ')}`).join('\n\n');
-    return `## 🔥 Trending Anime\n\n${list}\n\n> 🔗 *Jikan API*`;
+    return `## 🔥 Trending Anime\n\n${list}\n\n> 🔗 *AnimeSense Data System*`;
 }
 
 function generateGreeting() {
@@ -1265,7 +1265,7 @@ function generateGreeting() {
 }
 
 function generateFallbackResponse() {
-    return `Try asking me:\n\n- **"Tell me about [anime]"**\n- **"Explain the ending of [anime]"**\n- **"Recommend [genre] anime"**\n- **"Fate series watch order"**\n- **"What's trending?"**\n\n> All data from Jikan API · AI analysis via OpenRouter & Groq`;
+    return `Try asking me:\n\n- **"Tell me about [anime]"**\n- **"Explain the ending of [anime]"**\n- **"Recommend [genre] anime"**\n- **"Fate series watch order"**\n- **"What's trending?"**\n\n> All data from AnimeSense Knowledge System · AI analysis via AnimeSense Intelligence Engine`;
 }
 
 // ══════════ UI HELPERS ══════════

@@ -178,7 +178,7 @@ Be analytical, reference specific feats, and give a definitive winner.`;
                 response = result.content;
 
                 const kbTag = (kb1 || kb2) ? ' + Knowledge Base' : '';
-                response += `\n\n> ⚔️ *Power Arena analysis by ${result.provider} (${result.model.split('/').pop()}) · Jikan API${kbTag}*`;
+                response += `\n\n> ⚔️ *Power Arena analysis by AnimeSense AI Analysis Engine${kbTag}*`;
             } catch (llmErr) {
                 // Fallback: data-only comparison
                 response += `### 📊 Quick Analysis\n\n`;
@@ -186,7 +186,7 @@ Be analytical, reference specific feats, and give a definitive winner.`;
                 if (kb1) response += `**${profile1.name}** fights using: *${profile1.powerSystem.slice(0, 150)}*\n\n`;
                 if (kb2) response += `**${profile2.name}** fights using: *${profile2.powerSystem.slice(0, 150)}*\n\n`;
                 response += `The outcome depends heavily on which universe's rules apply!\n\n`;
-                response += `> 📊 *Battle data from Jikan API*`;
+                response += `> 📊 *Battle data from AnimeSense Knowledge System*`;
             }
 
             // Track in memory

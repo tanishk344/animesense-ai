@@ -46,7 +46,7 @@ const AnimeAPI = {
             const data = await res.json();
 
             const t1 = performance.now();
-            console.log(`[Perf] Jikan API: ${endpoint} - ${(t1 - t0).toFixed(2)}ms`);
+            console.log(`[Perf] AnimeSense Data System: ${endpoint} - ${(t1 - t0).toFixed(2)}ms`);
 
             // 5. Save to caches (strip unnecessary pagination data if it's large, but let's keep it safe)
             this.cache.set(cacheKey, data);

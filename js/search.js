@@ -227,7 +227,7 @@ async function openAnimeDetail(malId) {
                 ${a.background ? `<h3 style="margin-top:var(--space-6)">Background</h3><p>${a.background}</p>` : ''}
 
                 <div class="detail-api-badge">
-                    <i class="fas fa-database"></i> Live data from MyAnimeList via Jikan API
+                    <i class="fas fa-database"></i> Live data from AnimeSense Knowledge System
                 </div>
             </div>
         `;
