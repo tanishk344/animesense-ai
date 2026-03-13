@@ -1,201 +1,12 @@
-/* AnimeSense AI — LLM Router v10 with Multi-Provider Key Rotation
+/* AnimeSense AI — LLM Router v11 (Secure Backend Integration)
  * ============================================================
- * Providers: OpenRouter (primary), Groq/Grok (fallback)
- * Features: Round-robin key rotation, auto-failover, rate limit handling
- * v10: Expert system prompt + advanced context builder
+ * Routes chat requests to the secure Vercel backend.
+ * API Keys and provider configurations are removed from frontend.
  */
 
 const LLMRouter = (() => {
 
-    // ═══════════════════════════ PROVIDER CONFIG ═══════════════════════════
-
-    const PROVIDERS = {
-        openrouter: {
-            name: 'OpenRouter',
-            baseUrl: 'https://openrouter.ai/api/v1/chat/completions',
-            keys: [
-                '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',
-                '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',
-                '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',
-                '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',
-                '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'
-            ],
-            models: [
-                'google/gemini-2.0-flash-001',
-                'meta-llama/llama-3.3-70b-instruct:free',
-                'deepseek/deepseek-chat-v3-0324:free',
-                'google/gemini-2.0-flash-lite-001'
-            ],
-            currentKeyIndex: 0,
-            currentModelIndex: 0,
-            failedKeys: new Set(),
-            headers: (key) => ({
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${key}`,
-                'HTTP-Referer': 'https://animesense.ai',
-                'X-Title': 'AnimeSense AI'
-            })
-        },
-        groq: {
-            name: 'Groq',
-            baseUrl: 'https://api.groq.com/openai/v1/chat/completions',
-            keys: [
-                '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',
-                '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',
-                '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',
-                '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',
-                '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'
-            ],
-            models: [
-                'llama-3.3-70b-versatile',
-                'llama-3.1-8b-instant',
-                'gemma2-9b-it',
-                'mixtral-8x7b-32768'
-            ],
-            currentKeyIndex: 0,
-            currentModelIndex: 0,
-            failedKeys: new Set(),
-            headers: (key) => ({
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${key}`
-            })
-        }
-    };
-
-    // Provider priority order
-    const PROVIDER_ORDER = ['openrouter', 'groq'];
-
-    // ═══════════════════════════ KEY ROTATION ═══════════════════════════
-
-    function getNextKey(provider) {
-        const config = PROVIDERS[provider];
-        const totalKeys = config.keys.length;
-        let attempts = 0;
-
-        while (attempts < totalKeys) {
-            config.currentKeyIndex = (config.currentKeyIndex + 1) % totalKeys;
-            const key = config.keys[config.currentKeyIndex];
-            if (!config.failedKeys.has(key)) {
-                return key;
-            }
-            attempts++;
-        }
-
-        // All keys failed — reset and try again
-        config.failedKeys.clear();
-        config.currentKeyIndex = (config.currentKeyIndex + 1) % totalKeys;
-        return config.keys[config.currentKeyIndex];
-    }
-
-    function getCurrentKey(provider) {
-        const config = PROVIDERS[provider];
-        const key = config.keys[config.currentKeyIndex];
-        if (config.failedKeys.has(key)) {
-            return getNextKey(provider);
-        }
-        return key;
-    }
-
-    function markKeyFailed(provider, key) {
-        PROVIDERS[provider].failedKeys.add(key);
-        console.warn(`[LLMRouter] Key marked failed for ${provider}: ...${key.slice(-8)}`);
-    }
-
-    function rotateModel(provider) {
-        const config = PROVIDERS[provider];
-        config.currentModelIndex = (config.currentModelIndex + 1) % config.models.length;
-        return config.models[config.currentModelIndex];
-    }
-
-    function getCurrentModel(provider) {
-        return PROVIDERS[provider].models[PROVIDERS[provider].currentModelIndex];
-    }
-
-    // ═══════════════════════════ API CALL ═══════════════════════════
-
-    async function callProvider(provider, messages, options = {}) {
-        const config = PROVIDERS[provider];
-        const key = getCurrentKey(provider);
-        const model = options.model || getCurrentModel(provider);
-
-        const body = {
-            model: model,
-            messages: messages,
-            max_tokens: options.maxTokens || 2048,
-            temperature: options.temperature ?? 0.7,
-            top_p: options.topP ?? 0.9,
-            stream: false
-        };
-
-        // Add frequency/presence penalty for better responses
-        if (provider === 'openrouter') {
-            body.frequency_penalty = 0.1;
-            body.presence_penalty = 0.1;
-        }
-
-        try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout for fast failover
-
-            const response = await fetch(config.baseUrl, {
-                method: 'POST',
-                headers: config.headers(key),
-                body: JSON.stringify(body),
-                signal: controller.signal
-            });
-
-            clearTimeout(timeout);
-
-            if (response.status === 429) {
-                // Rate limited — rotate key
-                console.warn(`[LLMRouter] Rate limited on ${provider}, rotating key`);
-                markKeyFailed(provider, key);
-                throw new Error('RATE_LIMITED');
-            }
-
-            if (response.status === 401 || response.status === 403) {
-                // Auth failed — mark key as bad
-                console.warn(`[LLMRouter] Auth failed on ${provider}, key: ...${key.slice(-8)}`);
-                markKeyFailed(provider, key);
-                throw new Error('AUTH_FAILED');
-            }
-
-            if (!response.ok) {
-                const errText = await response.text().catch(() => '');
-                console.error(`[LLMRouter] ${provider} error ${response.status}:`, errText);
-                throw new Error(`HTTP_${response.status}`);
-            }
-
-            const data = await response.json();
-
-            if (!data.choices || !data.choices[0]) {
-                throw new Error('NO_CHOICES');
-            }
-
-            const content = data.choices[0].message?.content || '';
-            const usage = data.usage || {};
-
-            // Rotate key for next request (round-robin)
-            getNextKey(provider);
-
-            return {
-                content: content,
-                provider: config.name,
-                model: data.model || model,
-                tokens: {
-                    prompt: usage.prompt_tokens || 0,
-                    completion: usage.completion_tokens || 0,
-                    total: usage.total_tokens || 0
-                }
-            };
-
-        } catch (err) {
-            if (err.name === 'AbortError') {
-                throw new Error('TIMEOUT');
-            }
-            throw err;
-        }
-    }
+    const API_ENDPOINT = '/api/chat';
 
     // ═══════════════════════════ MAIN ROUTER ═══════════════════════════
 
@@ -208,108 +19,85 @@ const LLMRouter = (() => {
             return promptCache.get(cacheKey);
         }
 
-        const maxRetries = options.maxRetries || 3;
-        const errors = [];
+        try {
+            const response = await fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages, options })
+            });
 
-        for (const provider of PROVIDER_ORDER) {
-            const config = PROVIDERS[provider];
-            let retries = 0;
-
-            while (retries < maxRetries) {
-                try {
-                    const result = await callProvider(provider, messages, options);
-                    console.log(`[LLMRouter] Success via ${result.provider} (${result.model}) — ${result.tokens.total} tokens`);
-
-                    if (promptCache.size > 100) promptCache.clear();
-                    promptCache.set(cacheKey, result);
-
-                    return result;
-                } catch (err) {
-                    retries++;
-                    errors.push({ provider, error: err.message, retry: retries });
-                    console.warn(`[LLMRouter] ${provider} attempt ${retries} failed: ${err.message}`);
-
-                    if (err.message === 'RATE_LIMITED' || err.message === 'AUTH_FAILED') {
-                        // Try next key immediately
-                        continue;
-                    }
-
-                    if (err.message.startsWith('HTTP_')) {
-                        // Try different model
-                        rotateModel(provider);
-                        continue;
-                    }
-
-                    // Timeout or other — try next provider
-                    break;
-                }
+            if (!response.ok) {
+                const errText = await response.text().catch(() => '');
+                throw new Error(`HTTP_${response.status} - ${errText}`);
             }
 
-            console.warn(`[LLMRouter] All retries exhausted for ${provider}, trying next provider`);
-        }
+            const result = await response.json();
 
-        console.error('[LLMRouter] All providers failed:', errors);
-        throw new Error('ALL_PROVIDERS_FAILED');
+            if (result.error) {
+                throw new Error(result.error);
+            }
+
+            console.log(`[LLMRouter] Success via ${result.provider} (${result.model}) — ${result.tokens?.total || 0} tokens`);
+
+            if (promptCache.size > 100) promptCache.clear();
+            promptCache.set(cacheKey, result);
+
+            return result;
+        } catch (err) {
+            console.error('[LLMRouter] API Chat Error:', err);
+            throw err;
+        }
     }
 
     async function streamChat(messages, onChunk, options = {}) {
-        // Simple 1-pass stream attempt on primary provider
-        const provider = PROVIDER_ORDER[0];
-        const config = PROVIDERS[provider];
-        const key = getCurrentKey(provider);
-        const model = options.model || getCurrentModel(provider);
+        options.stream = true;
 
-        const body = {
-            model: model,
-            messages: messages,
-            max_tokens: options.maxTokens || 2048,
-            temperature: options.temperature ?? 0.7,
-            stream: true
-        };
+        try {
+            const response = await fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages, options })
+            });
 
-        if (provider === 'openrouter') {
-            body.frequency_penalty = 0.1;
-            body.presence_penalty = 0.1;
-        }
+            if (!response.ok) {
+                throw new Error(`HTTP_${response.status}`);
+            }
+            if (!response.body) {
+                throw new Error('NO_STREAM');
+            }
 
-        const response = await fetch(config.baseUrl, {
-            method: 'POST',
-            headers: config.headers(key),
-            body: JSON.stringify(body)
-        });
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let accumulatedContent = '';
 
-        if (!response.ok) throw new Error(`HTTP_${response.status}`);
-        if (!response.body) throw new Error('NO_STREAM');
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder('utf-8');
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
 
-        let accumulatedContent = '';
-
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\\n');
-
-            for (const line of lines) {
-                if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                    try {
-                        const data = JSON.parse(line.substring(6));
-                        const delta = data.choices[0]?.delta?.content || '';
-                        accumulatedContent += delta;
-                        if (delta) onChunk(delta, accumulatedContent);
-                    } catch (e) { /* ignore parse error on incomplete chunks */ }
+                for (const line of lines) {
+                    if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                        try {
+                            const data = JSON.parse(line.substring(6));
+                            const delta = data.choices && data.choices[0]?.delta?.content || '';
+                            accumulatedContent += delta;
+                            if (delta) onChunk(delta, accumulatedContent);
+                        } catch (e) { /* ignore parse error on incomplete chunks */ }
+                    }
                 }
             }
+
+            // Save to cache after streaming completes
+            const cacheKey = JSON.stringify(messages) + (options.model || '') + (options.temperature || '');
+            promptCache.set(cacheKey, { content: accumulatedContent, provider: 'SecureProvider', model: options.model || 'auto', tokens: { total: 0 } });
+
+            return accumulatedContent;
+        } catch (err) {
+            console.error('[LLMRouter] Stream API Error:', err);
+            throw err;
         }
-
-        // Save to cache after streaming completes
-        const cacheKey = JSON.stringify(messages) + (options.model || '') + (options.temperature || '');
-        promptCache.set(cacheKey, { content: accumulatedContent, provider: config.name, model, tokens: { total: 0 } });
-
-        return accumulatedContent;
     }
 
     // ═══════════════════════════ SYSTEM PROMPT ═══════════════════════════
@@ -328,7 +116,7 @@ When possible include:
 
 CORE RULES:
 1. You receive real anime data from THREE sources:
-   - MyAnimeList database (Jikan API) — live scores, episodes, rankings, aired dates
+   - MyAnimeList database (AnimeSense Data System) — live scores, episodes, rankings, aired dates
    - AnimeSense Knowledge Base — curated knowledge including power systems, arcs, themes, endings, authorship
    - Knowledge Graph — relationships between anime, characters, studios, themes, and power systems
    ALWAYS use ALL available data sources in your responses.
@@ -368,7 +156,7 @@ CORE RULES:
     // ═══════════════════════════ PROMPT BUILDERS ═══════════════════════════
 
     function buildAnimeContext(animeData, characters = null) {
-        let context = `\n[ANIME DATA FROM MYANIMELIST]\n`;
+        let context = `\n[ANIME DATA]\n`;
         context += `Title: ${animeData.title}\n`;
         if (animeData.title_japanese) context += `Japanese Title: ${animeData.title_japanese}\n`;
         context += `Type: ${animeData.type || 'Unknown'}\n`;
@@ -406,7 +194,6 @@ CORE RULES:
             });
         }
 
-        // ═══ FEATURE 5: Inject Knowledge Base data ═══
         if (typeof AnimeKnowledge !== 'undefined') {
             const knowledge = AnimeKnowledge.lookup(animeData.title);
             if (knowledge) {
@@ -414,7 +201,6 @@ CORE RULES:
             }
         }
 
-        // ═══ FEATURE 8: Inject Knowledge Graph data ═══
         if (typeof AnimeGraph !== 'undefined') {
             const graphCtx = AnimeGraph.buildGraphContext(animeData.title);
             if (graphCtx) {
@@ -426,7 +212,7 @@ CORE RULES:
     }
 
     function buildTrendingContext(animeList) {
-        let context = `\n[TRENDING ANIME DATA FROM MYANIMELIST]\n`;
+        let context = `\n[TRENDING ANIME DATA]\n`;
         animeList.forEach((a, i) => {
             const studios = (a.studios || []).map(s => s.name).join(', ') || 'Unknown';
             const genres = (a.genres || []).map(g => g.name).join(', ');
@@ -444,10 +230,6 @@ CORE RULES:
         return context;
     }
 
-    /**
-     * Build user profile context for personalized recommendations.
-     * Combines memory, watchlist, and genre preferences.
-     */
     function buildRecommendationProfile(memory, watchlist) {
         let profile = `\n[USER PROFILE]\n`;
         if (memory && memory.watched && memory.watched.length > 0) {
@@ -462,7 +244,6 @@ CORE RULES:
         }
         if (watchlist && watchlist.length > 0) {
             profile += `Watchlist (${watchlist.length} anime): ${watchlist.slice(-8).map(a => a.title).join(', ')}\n`;
-            // Inject knowledge for watchlist entries
             if (typeof AnimeKnowledge !== 'undefined') {
                 const themes = new Set();
                 watchlist.forEach(a => {
@@ -487,20 +268,14 @@ CORE RULES:
         buildTrendingContext,
         buildRecommendationsContext,
         buildRecommendationProfile,
-        getCurrentModel,
+        getCurrentModel() {
+            return 'auto'; // Model is now managed by the backend
+        },
         getStatus() {
-            const status = {};
-            for (const [key, config] of Object.entries(PROVIDERS)) {
-                status[key] = {
-                    name: config.name,
-                    currentKeyIndex: config.currentKeyIndex,
-                    currentModel: config.models[config.currentModelIndex],
-                    failedKeys: config.failedKeys.size,
-                    totalKeys: config.keys.length,
-                    activeKeys: config.keys.length - config.failedKeys.size
-                };
-            }
-            return status;
+            return {
+                mode: 'Secure Backend Integration',
+                endpoint: API_ENDPOINT
+            };
         }
     };
 })();
