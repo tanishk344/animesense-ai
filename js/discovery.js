@@ -72,6 +72,10 @@ const DiscoveryFeed = (() => {
 
     // ── Data Fetchers ──
     async function fetchJSON(url) {
+        if (typeof AnimeAPI !== 'undefined') {
+            const endpoint = url.replace(JIKAN, '');
+            return AnimeAPI._fetch(endpoint, true);
+        }
         const resp = await fetch(url);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         return resp.json();
@@ -133,59 +137,62 @@ const DiscoveryFeed = (() => {
         const container = document.getElementById('discoveryFeed');
         if (!container) return;
 
-        const genrePick = pickGenres();
+        // Render skeletons immediately without blocking
+        requestAnimationFrame(() => {
+            const genrePick = pickGenres();
+            container.dataset.genreId = genrePick.id;
+            container.dataset.genreName = genrePick.name;
 
-        // Build sections
-        container.innerHTML =
-            buildSection('recommended', 'magic', 'purple', 'Recommended For You', 'Refresh recommendations', 'javascript:DiscoveryFeed.refreshRecommendations()') +
-            buildSection('trending', 'fire', 'fire', 'Trending Now', 'Browse all trending', 'search.html') +
-            buildSection('top-rated', 'trophy', 'trophy', 'Top Rated of All Time', 'See full rankings', 'search.html') +
-            buildSection('hidden-gems', 'gem', 'gem', 'Hidden Gems', 'Discover more gems', 'chat.html?q=Recommend+underrated+anime') +
-            buildSection('upcoming', 'calendar-alt', 'calendar', 'Upcoming Anime', 'See all upcoming', 'chat.html?q=What+anime+is+upcoming') +
-            buildSection('genre', 'star', 'star', `${genrePick.name} Highlights`, `More ${genrePick.name} anime`, `chat.html?q=Recommend+${encodeURIComponent(genrePick.name)}+anime`);
+            container.innerHTML =
+                buildSection('recommended', 'magic', 'purple', 'Recommended For You', 'Refresh recommendations', 'javascript:DiscoveryFeed.refreshRecommendations()') +
+                buildSection('trending', 'fire', 'fire', 'Trending Now', 'Browse all trending', 'search.html') +
+                buildSection('top-rated', 'trophy', 'trophy', 'Top Rated of All Time', 'See full rankings', 'search.html') +
+                buildSection('hidden-gems', 'gem', 'gem', 'Hidden Gems', 'Discover more gems', 'chat.html?q=Recommend+underrated+anime') +
+                buildSection('upcoming', 'calendar-alt', 'calendar', 'Upcoming Anime', 'See all upcoming', 'chat.html?q=What+anime+is+upcoming') +
+                buildSection('genre', 'star', 'star', `${genrePick.name} Highlights`, `More ${genrePick.name} anime`, `chat.html?q=Recommend+${encodeURIComponent(genrePick.name)}+anime`);
 
-        // Hide recommended initially
-        const recSection = document.getElementById('cat-recommended');
-        if (recSection) recSection.style.display = 'none';
+            // Hide recommended initially
+            const recSection = document.getElementById('cat-recommended');
+            if (recSection) recSection.style.display = 'none';
+        });
 
-        // Fetch data with rate-limit spacing
-        const fetchAndRender = async (fetchFn, scrollId) => {
-            try {
-                const data = await fetchFn();
-                const el = document.getElementById(`${scrollId}-scroll`);
-                if (el && data.length) el.innerHTML = data.map(createCardHTML).join('');
-            } catch (e) { console.warn(`[Discovery] ${scrollId} fetch failed:`, e); }
-        };
-
-        // If user logs in, show personalized recs
+        // ── Auth initialization for Personalized Recs ──
         setTimeout(async () => {
             if (typeof FirebaseDB !== 'undefined' && FirebaseDB.isReady()) {
                 await loadRecommendations();
             } else if (typeof FirebaseAuth !== 'undefined') {
                 FirebaseAuth.onAuthStateChange(async (u) => {
+                    const recSection = document.getElementById('cat-recommended');
                     if (u) await loadRecommendations();
                     else if (recSection) recSection.style.display = 'none';
                 });
             }
-        }, 1000);
+        }, 800);
 
-        await fetchAndRender(fetchTrending, 'trending');
-        await sleep(RATE_DELAY);
+        // Define fetchers that use the cached AnimeAPI rather than straight raw fetch
+        const renderData = (selector, data) => requestAnimationFrame(() => {
+            const el = document.getElementById(selector);
+            if (el && data && data.length) el.innerHTML = data.map(createCardHTML).join('');
+        });
 
-        await fetchAndRender(fetchTopRated, 'top-rated');
-        await sleep(RATE_DELAY);
-
-        await fetchAndRender(fetchHiddenGems, 'hidden-gems');
-        await sleep(RATE_DELAY);
-
-        await fetchAndRender(fetchUpcoming, 'upcoming');
-        await sleep(RATE_DELAY);
-
+        // Parallelize fetching
         try {
-            const genre = await fetchByGenre(genrePick.id, genrePick.name);
-            const genreEl = document.getElementById('genre-scroll');
-            if (genreEl && genre.data.length) genreEl.innerHTML = genre.data.map(createCardHTML).join('');
-        } catch (e) { console.warn('[Discovery] Genre fetch failed:', e); }
+            console.time('[Perf] Discovery Load');
+
+            const genreId = parseInt(container.dataset.genreId || '1');
+
+            await Promise.allSettled([
+                fetchTrending().then(d => renderData('trending-scroll', d)),
+                fetchTopRated().then(d => renderData('top-rated-scroll', d)),
+                fetchHiddenGems().then(d => renderData('hidden-gems-scroll', d)),
+                fetchUpcoming().then(d => renderData('upcoming-scroll', d)),
+                fetchByGenre(genreId, container.dataset.genreName || 'Action').then(res => renderData('genre-scroll', res.data))
+            ]);
+
+            console.timeEnd('[Perf] Discovery Load');
+        } catch (e) {
+            console.warn('[Discovery] Parallel fetch failed:', e);
+        }
     }
 
     async function loadRecommendations() {

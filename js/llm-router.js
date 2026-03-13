@@ -135,7 +135,7 @@ const LLMRouter = (() => {
 
         try {
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
+            const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout for fast failover
 
             const response = await fetch(config.baseUrl, {
                 method: 'POST',
@@ -199,7 +199,15 @@ const LLMRouter = (() => {
 
     // ═══════════════════════════ MAIN ROUTER ═══════════════════════════
 
+    const promptCache = new Map();
+
     async function chat(messages, options = {}) {
+        const cacheKey = JSON.stringify(messages) + (options.model || '') + (options.temperature || '');
+        if (promptCache.has(cacheKey)) {
+            console.log('[LLMRouter] Prompt cache hit');
+            return promptCache.get(cacheKey);
+        }
+
         const maxRetries = options.maxRetries || 3;
         const errors = [];
 
@@ -211,6 +219,10 @@ const LLMRouter = (() => {
                 try {
                     const result = await callProvider(provider, messages, options);
                     console.log(`[LLMRouter] Success via ${result.provider} (${result.model}) — ${result.tokens.total} tokens`);
+
+                    if (promptCache.size > 100) promptCache.clear();
+                    promptCache.set(cacheKey, result);
+
                     return result;
                 } catch (err) {
                     retries++;
@@ -238,6 +250,66 @@ const LLMRouter = (() => {
 
         console.error('[LLMRouter] All providers failed:', errors);
         throw new Error('ALL_PROVIDERS_FAILED');
+    }
+
+    async function streamChat(messages, onChunk, options = {}) {
+        // Simple 1-pass stream attempt on primary provider
+        const provider = PROVIDER_ORDER[0];
+        const config = PROVIDERS[provider];
+        const key = getCurrentKey(provider);
+        const model = options.model || getCurrentModel(provider);
+
+        const body = {
+            model: model,
+            messages: messages,
+            max_tokens: options.maxTokens || 2048,
+            temperature: options.temperature ?? 0.7,
+            stream: true
+        };
+
+        if (provider === 'openrouter') {
+            body.frequency_penalty = 0.1;
+            body.presence_penalty = 0.1;
+        }
+
+        const response = await fetch(config.baseUrl, {
+            method: 'POST',
+            headers: config.headers(key),
+            body: JSON.stringify(body)
+        });
+
+        if (!response.ok) throw new Error(`HTTP_${response.status}`);
+        if (!response.body) throw new Error('NO_STREAM');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+
+        let accumulatedContent = '';
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\\n');
+
+            for (const line of lines) {
+                if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                    try {
+                        const data = JSON.parse(line.substring(6));
+                        const delta = data.choices[0]?.delta?.content || '';
+                        accumulatedContent += delta;
+                        if (delta) onChunk(delta, accumulatedContent);
+                    } catch (e) { /* ignore parse error on incomplete chunks */ }
+                }
+            }
+        }
+
+        // Save to cache after streaming completes
+        const cacheKey = JSON.stringify(messages) + (options.model || '') + (options.temperature || '');
+        promptCache.set(cacheKey, { content: accumulatedContent, provider: config.name, model, tokens: { total: 0 } });
+
+        return accumulatedContent;
     }
 
     // ═══════════════════════════ SYSTEM PROMPT ═══════════════════════════
@@ -409,6 +481,7 @@ CORE RULES:
 
     return {
         chat,
+        streamChat,
         ANIME_SYSTEM_PROMPT,
         buildAnimeContext,
         buildTrendingContext,

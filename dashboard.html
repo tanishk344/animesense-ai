@@ -869,12 +869,12 @@
                         FirebaseDB.getPersonalityResult()
                     ]);
 
-                    renderStats(watchlist, quizStats, battles, genres);
-                    renderWatchlist(watchlist);
-                    renderQuizStats(quizStats);
-                    renderBattles(battles);
-                    renderGenres(genres);
-                    renderPersonality(personality);
+                    requestAnimationFrame(() => renderStats(watchlist, quizStats, battles, genres));
+                    requestAnimationFrame(() => renderWatchlist(watchlist));
+                    requestAnimationFrame(() => renderQuizStats(quizStats));
+                    requestAnimationFrame(() => renderBattles(battles));
+                    requestAnimationFrame(() => renderGenres(genres));
+                    requestAnimationFrame(() => renderPersonality(personality));
                 } else {
                     console.warn('[Dashboard] FirebaseDB not ready — showing empty state');
                 }

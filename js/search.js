@@ -17,7 +17,30 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupSearchHandlers() {
-    searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') performSearch(); });
+    let searchTimeout = null;
+
+    // Add 300ms debounce for auto-search
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            if (searchInput.value.trim()) {
+                performSearch();
+            } else {
+                // If cleared, go back to trending
+                trendingSection.style.display = 'block';
+                searchResultsSection.style.display = 'none';
+            }
+        }, 300);
+    });
+
+    searchInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            clearTimeout(searchTimeout);
+            performSearch();
+        }
+    });
+
     genreFilters.addEventListener('click', e => {
         const chip = e.target.closest('.filter-chip');
         if (!chip) return;

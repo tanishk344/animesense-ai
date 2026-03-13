@@ -142,6 +142,21 @@ const WATCH_ORDERS = {
     'gundam': `## Gundam — Beginner Watch Order\n\n**Universal Century (main timeline):**\n1. **Mobile Suit Gundam** (43 eps) — 1979\n2. **Zeta Gundam** → **ZZ Gundam** → **Char's Counterattack**\n\n**Standalone (no prior knowledge needed):**\n- **Gundam 00** — Modern, accessible\n- **Iron-Blooded Orphans** — Dark, grounded\n- **Witch from Mercury** — 2022, newest`
 };
 
+// ══════════ DYNAMIC MODULE LOADER (v12) ══════════
+const DynamicLoader = {
+    loaded: new Set(),
+    async load(scriptUrl) {
+        if (this.loaded.has(scriptUrl)) return true;
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = scriptUrl;
+            script.onload = () => { this.loaded.add(scriptUrl); resolve(true); };
+            script.onerror = () => reject();
+            document.body.appendChild(script);
+        });
+    }
+};
+
 // ══════════ DOM REFS ══════════
 const chatInput = document.getElementById('chatInput');
 const chatSendBtn = document.getElementById('chatSendBtn');
@@ -154,10 +169,16 @@ const clearChatBtn = document.getElementById('clearChatBtn');
 document.addEventListener('DOMContentLoaded', () => { loadChatHistory(); setupInputHandlers(); handleQueryParam(); });
 
 function setupInputHandlers() {
+    let chatInputTimeout = null;
     chatInput.addEventListener('input', () => {
-        chatSendBtn.disabled = !chatInput.value.trim() || isProcessing;
-        chatInput.style.height = 'auto';
-        chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px';
+        clearTimeout(chatInputTimeout);
+        chatInputTimeout = setTimeout(() => {
+            requestAnimationFrame(() => {
+                chatSendBtn.disabled = !chatInput.value.trim() || isProcessing;
+                chatInput.style.height = 'auto';
+                chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px';
+            });
+        }, 300);
     });
     chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
     document.querySelectorAll('.mode-chip').forEach(chip => {
@@ -262,23 +283,23 @@ async function generateResponse(query) {
 
     // ── v10 intents ──
     if (intent === 'PERSONALITY_TEST') {
-        if (typeof PersonalityTest !== 'undefined') {
+        try {
+            await DynamicLoader.load('js/personality-test.js');
             return PersonalityTest.startTest();
-        }
-        return '## 🎭 Personality Test\n\nPersonality test module not loaded. Please refresh the page.';
+        } catch (e) { return '## 🎭 Personality Test\n\nFailed to load module.'; }
     }
     if (intent === 'QUIZ_STATS') {
-        if (typeof AnimeQuiz !== 'undefined') {
+        try {
+            await DynamicLoader.load('js/anime-quiz.js');
             return AnimeQuiz.getStats();
-        }
-        return '## 📊 Quiz Stats\n\nNo quiz stats yet! Say **"anime quiz"** to start playing.';
+        } catch (e) { return '## 📊 Quiz Stats\n\nFailed to load module.'; }
     }
     if (intent === 'QUIZ_MODE') {
-        if (typeof AnimeQuiz !== 'undefined') {
+        try {
+            await DynamicLoader.load('js/anime-quiz.js');
             const result = await AnimeQuiz.startQuiz();
             return result.message;
-        }
-        return await handleQuizMode(query); // Legacy fallback
+        } catch (e) { return await handleQuizMode(query); /* fallback */ }
     }
     if (intent === 'WATCHLIST_ADD') return await handleWatchlistAdd(query, entities);
     if (intent === 'WATCHLIST_SHOW') return handleWatchlistShow();
@@ -291,11 +312,11 @@ async function generateResponse(query) {
             entities.battleEntities[0]?.name || 'unknown',
             entities.battleEntities[1]?.name || 'unknown'
         );
-        // Use Power Arena if available
-        if (typeof PowerArena !== 'undefined') {
+        try {
+            await DynamicLoader.load('js/power-arena.js');
             const arenaResult = await PowerArena.runBattle(query, entities);
             if (arenaResult) return arenaResult;
-        }
+        } catch (e) { }
         return await handleCharacterBattle(query, entities);
     }
 
@@ -1150,35 +1171,56 @@ async function buildFullDetailResponse(anime, existingChars) {
     const a = anime, studios = (a.studios || []).map(s => s.name).join(', ') || 'Unknown', genres = (a.genres || []).map(g => g.name).join(', ') || 'Unknown';
     let r = `## ${a.title}${a.title_japanese ? ' *(' + a.title_japanese + ')*' : ''}\n\n${(a.synopsis || 'No synopsis.').slice(0, 600)}\n\n### 📋 Key Details\n\n| Detail | Info |\n|---|---|\n| **Type** | ${a.type || 'TV'} |\n| **Episodes** | ${a.episodes || '?'} |\n| **Status** | ${a.status || '?'} |\n| **Aired** | ${a.aired?.string || '?'} |\n| **Studio** | ${studios} |\n| **Genres** | ${genres} |\n| **Score** | ⭐ ${a.score || 'N/A'}/10 |\n| **Rank** | #${a.rank || '?'} |\n\n`;
 
-    // Inject Community Reviews (v12)
-    if (typeof FirebaseDB !== 'undefined' && FirebaseDB.isReady()) {
-        try {
-            const revData = await FirebaseDB.getAnimeReviews(a.mal_id);
-            r += `### 💬 Community Reviews\n\n`;
-            if (revData.count > 0) {
-                r += `**Average Rating:** ⭐ ${revData.average}/5 (${revData.count} reviews)\n\n`;
-                revData.top.forEach(rev => {
-                    r += `> **${rev.userName}** (⭐ ${rev.rating}/5): "${rev.reviewText}"\n\n`;
-                });
-            } else {
-                r += `No reviews yet. Be the first to review **${a.title}**!\n\n`;
-            }
+    // Parallel fetch: Community Reviews and Characters
+    let revData = null;
+    let charsData = existingChars;
 
-            // Add review inline form
-            r += `<div class="review-box" style="padding:10px; margin-top:10px; border-radius:8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
-                <strong style="margin-bottom:8px; display:block; color:var(--primary-light);">Write a Review</strong>
-                <div style="display:flex; gap:8px;">
-                    <input type="number" id="rating-${a.mal_id}" min="1" max="5" placeholder="1-5" style="width:60px; background: rgba(0,0,0,0.5); color:white; border:1px solid #444; padding:5px; border-radius:4px;" title="Rating (1-5)">
-                    <input type="text" id="reviewText-${a.mal_id}" placeholder="Short review..." style="flex:1; background: rgba(0,0,0,0.5); color:white; border:1px solid #444; padding:5px; border-radius:4px;">
-                    <button onclick="submitAnimeReview(${a.mal_id})" style="background:var(--primary); color:white; border:none; padding:5px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">Submit</button>
-                </div>
-            </div>\n\n`;
-        } catch (e) {
-            console.warn('Could not fetch reviews:', e);
-        }
+    const promises = [];
+
+    if (typeof FirebaseDB !== 'undefined' && FirebaseDB.isReady()) {
+        promises.push(
+            FirebaseDB.getAnimeReviews(a.mal_id)
+                .then(data => { revData = data; })
+                .catch(e => console.warn('Could not fetch reviews:', e))
+        );
     }
 
-    const chars = existingChars || (await AnimeAPI.getAnimeCharacters(a.mal_id).catch(() => ({}))).data;
+    if (!charsData) {
+        promises.push(
+            AnimeAPI.getAnimeCharacters(a.mal_id)
+                .then(res => { charsData = res.data; })
+                .catch(() => { })
+        );
+    }
+
+    if (promises.length > 0) {
+        await Promise.allSettled(promises);
+    }
+
+    // Inject Community Reviews (v12)
+    if (revData) {
+        r += `### 💬 Community Reviews\n\n`;
+        if (revData.count > 0) {
+            r += `**Average Rating:** ⭐ ${revData.average}/5 (${revData.count} reviews)\n\n`;
+            revData.top.forEach(rev => {
+                r += `> **${rev.userName}** (⭐ ${rev.rating}/5): "${rev.reviewText}"\n\n`;
+            });
+        } else {
+            r += `No reviews yet. Be the first to review **${a.title}**!\n\n`;
+        }
+
+        // Add review inline form
+        r += `<div class="review-box" style="padding:10px; margin-top:10px; border-radius:8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+            <strong style="margin-bottom:8px; display:block; color:var(--primary-light);">Write a Review</strong>
+            <div style="display:flex; gap:8px;">
+                <input type="number" id="rating-${a.mal_id}" min="1" max="5" placeholder="1-5" style="width:60px; background: rgba(0,0,0,0.5); color:white; border:1px solid #444; padding:5px; border-radius:4px;" title="Rating (1-5)">
+                <input type="text" id="reviewText-${a.mal_id}" placeholder="Short review..." style="flex:1; background: rgba(0,0,0,0.5); color:white; border:1px solid #444; padding:5px; border-radius:4px;">
+                <button onclick="submitAnimeReview(${a.mal_id})" style="background:var(--primary); color:white; border:none; padding:5px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">Submit</button>
+            </div>
+        </div>\n\n`;
+    }
+
+    const chars = charsData;
     if (chars && chars.length > 0) {
         r += `### 👥 Characters\n\n`;
         r += chars.filter(c => c.role === 'Main').slice(0, 6).map(c => { const va = c.voice_actors?.find(v => v.language === 'Japanese'); return `- **${c.character.name}** (${c.role})${va ? ' — VA: ' + va.person?.name : ''}`; }).join('\n');

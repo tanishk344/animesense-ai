@@ -6,26 +6,61 @@ const AnimeAPI = {
     lastRequest: 0,
     RATE_LIMIT: 400,
 
-    async _fetch(endpoint) {
-        const cacheKey = endpoint;
+    async _fetch(endpoint, useSessionCache = false) {
+        const cacheKey = `jikan_${endpoint}`;
+        const CACHE_TIME = 30 * 60 * 1000; // 30 minutes
+
+        // 1. Check local memory cache
         if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
 
-        // Rate limiting
+        // 2. Check Storage cache
+        const storage = useSessionCache ? sessionStorage : localStorage;
+        try {
+            const cached = storage.getItem(cacheKey);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Date.now() - parsed.timestamp < CACHE_TIME) {
+                    this.cache.set(cacheKey, parsed.data);
+                    return parsed.data;
+                }
+            }
+        } catch (e) { /* Ignore parsing/quota errors */ }
+
+        // 3. Rate limiting
         const now = Date.now();
         const wait = this.RATE_LIMIT - (now - this.lastRequest);
         if (wait > 0) await new Promise(r => setTimeout(r, wait));
         this.lastRequest = Date.now();
 
+        // 4. Performance Logging
+        const t0 = performance.now();
+
         try {
             const res = await fetch(`${this.BASE_URL}${endpoint}`);
             if (res.status === 429) {
                 await new Promise(r => setTimeout(r, 1500));
-                return this._fetch(endpoint);
+                return this._fetch(endpoint, useSessionCache);
             }
             if (!res.ok) throw new Error(`API Error: ${res.status}`);
+
             const data = await res.json();
+
+            const t1 = performance.now();
+            console.log(`[Perf] Jikan API: ${endpoint} - ${(t1 - t0).toFixed(2)}ms`);
+
+            // 5. Save to caches (strip unnecessary pagination data if it's large, but let's keep it safe)
             this.cache.set(cacheKey, data);
-            setTimeout(() => this.cache.delete(cacheKey), 5 * 60 * 1000);
+            try {
+                storage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data }));
+            } catch (e) {
+                // If quota exceeded, clear some storage
+                if (e.name === 'QuotaExceededError') {
+                    if (useSessionCache) sessionStorage.clear();
+                    else localStorage.clear();
+                }
+            }
+
+            setTimeout(() => this.cache.delete(cacheKey), CACHE_TIME);
             return data;
         } catch (err) {
             console.error('AnimeAPI Error:', err);
@@ -35,11 +70,11 @@ const AnimeAPI = {
 
     async searchAnime(query, page = 1, limit = 20) {
         const q = encodeURIComponent(query);
-        return this._fetch(`/anime?q=${q}&page=${page}&limit=${limit}&sfw=true`);
+        return this._fetch(`/anime?q=${q}&page=${page}&limit=${limit}&sfw=true`, true); // use sessionStorage
     },
 
     async getAnimeById(id) {
-        return this._fetch(`/anime/${id}/full`);
+        return this._fetch(`/anime/${id}/full`, false); // use localStorage
     },
 
     async getTopAnime(page = 1, limit = 20, filter = 'airing') {
