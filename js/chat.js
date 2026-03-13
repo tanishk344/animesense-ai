@@ -985,7 +985,7 @@ async function handleSmartRecommendation(query) {
 
         try {
             const result = await LLMRouter.chat(messages, { maxTokens: 1200, temperature: 0.8 });
-            return `${result.content}\n\n> 🧠 *Personalized by ${result.provider} · Based on your ${allTitles.length} searches + ${watchlist.length} watchlist entries*`;
+            return `${result.content}\n\n> 🧠 *Personalized by AnimeSense Intelligence Engine · Based on your ${allTitles.length} searches + ${watchlist.length} watchlist entries*`;
         } catch (e) {
             // Fallback: simple list
             const list = recResults.slice(0, 5).map((r, i) => `${i + 1}. **${r.title}**`).join('\n');
@@ -1147,7 +1147,7 @@ async function handleGeneralLLM(query) {
     ];
     try {
         const result = await LLMRouter.chat(messages, { maxTokens: 1200, temperature: 0.7 });
-        return result.content + `\n\n> 🤖 *${result.provider} · ${result.model.split('/').pop()}*`;
+        return result.content + `\n\n> 🤖 *AnimeSense Intelligence Engine*`;
     } catch (e) {
         return generateFallbackResponse(query);
     }

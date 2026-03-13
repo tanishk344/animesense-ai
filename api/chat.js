@@ -158,8 +158,8 @@ async function callProvider(provider, messages, options = {}) {
 
         return {
             content: content,
-            provider: config.name,
-            model: data.model || model,
+            provider: 'AnimeSense Intelligence Engine',
+            model: 'AnimeSense Advanced',
             tokens: {
                 prompt: usage.prompt_tokens || 0,
                 completion: usage.completion_tokens || 0,
