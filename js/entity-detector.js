@@ -149,7 +149,7 @@ const EntityDetector = (() => {
         TRENDING: /\b(trending|popular|top anime|best anime|right now|what.*hot)\b/i,
         UPCOMING: /\b(upcoming|next season|new anime|future|announced)\b/i,
         CHARACTERS: /\b(character|protagonist|who is|main character|villain|antagonist|cast|voice actor)\b/i,
-        EPISODES: /\b(how many\s+episode|total\s+episode|episode\s+count|number of\s+episode)\b/i,
+        FACTUAL: /\b(how many\s+episodes?|total\s+episodes?|episode\s+count|number of\s+episodes?)\b/i,
         RELEASE: /\b(release|when.*next|when.*come|airing|schedule)\b/i,
         ANALYSIS: /\b(symbolism|theme|analysis|meaning|deep|philosophy|why did|why does)\b/i,
         GREETING: /\b(hello|hi |hey |greetings|good morning|what can you do|help)\b/i,
@@ -229,7 +229,7 @@ const EntityDetector = (() => {
         if (INTENTS.SEASON_QUERY.test(q)) return 'SEASON_QUERY';
         // Standard intents
         if (INTENTS.ENDING_EXPLANATION.test(q)) return 'ENDING_EXPLANATION';
-        if (INTENTS.EPISODES.test(q)) return 'EPISODES';
+        if (INTENTS.FACTUAL.test(q)) return 'FACTUAL';
         if (INTENTS.RELEASE.test(q)) return 'RELEASE';
         if (INTENTS.WATCH_ORDER.test(q)) return 'WATCH_ORDER';
         if (INTENTS.RECOMMENDATION.test(q)) return 'RECOMMENDATION';

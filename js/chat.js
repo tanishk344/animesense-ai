@@ -356,12 +356,12 @@ async function generateResponse(query) {
                 userMemory.trackInteraction(anime.title);
                 userMemory.addGenres((anime.genres || []).map(g => g.name));
 
-                const needsLLM = ['ENDING_EXPLANATION', 'ANALYSIS', 'ANIME_INFO'].includes(intent) || currentMode === 'analysis';
+                const needsLLM = ['ENDING_EXPLANATION', 'ANALYSIS', 'ANIME_INFO', 'FACTUAL'].includes(intent) || currentMode === 'analysis';
 
                 if (needsLLM) return await handleLLMQuery(query, intent, anime);
 
                 switch (intent) {
-                    case 'EPISODES': return buildEpisodeResponse(anime);
+                    case 'FACTUAL': return await handleLLMQuery(query, intent, anime);
                     case 'RELEASE': return buildReleaseResponse(anime, [anime]);
                     case 'EXPLAIN': case 'SEARCH': return await handleLLMDetail(query, anime);
                     case 'WATCH_ORDER': {
@@ -816,6 +816,7 @@ async function handleLLMQuery(query, queryType, anime) {
         ENDING_EXPLANATION: 'Provide a detailed ending explanation with spoilers. Explain the themes, character arcs, and authorial intent. Reference specific scenes and plot twists.',
         ANALYSIS: 'Provide deep thematic analysis. Discuss symbolism, character psychology, narrative techniques, and the power system. Reference the author\'s storytelling approach.',
         CHARACTER_BATTLE: 'Compare and contrast the anime with others in its genre. Analyze power systems and character feats.',
+        FACTUAL: 'Answer this factual question as concisely as possible in 1-2 sentences. Do NOT elaborate or add unnecessary sections.',
         ANIME_INFO: 'Provide comprehensive information about this anime including power system, key arcs, and notable aspects.'
     };
     const memoryCtx = userMemory.getContext();
