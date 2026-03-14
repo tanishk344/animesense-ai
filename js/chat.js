@@ -1167,7 +1167,7 @@ async function handleGeneralLLM(query) {
 function extractFactualResponse(query, anime) {
     const q = query.toLowerCase();
 
-    if (q.includes('how many episode') || q.includes('total episode') || q.includes('episode count') || q.includes('number of episode')) {
+    if (q.includes('how many episode') || q.includes('total episode') || q.includes('episode count') || q.includes('number of episode') || q.match(/\bepisodes?\s*$/)) {
         return `**${anime.title}** has **${anime.episodes || 'Unknown'}** episodes.`;
     }
 

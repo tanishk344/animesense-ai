@@ -149,7 +149,7 @@ const EntityDetector = (() => {
         TRENDING: /\b(trending|popular|top anime|best anime|right now|what.*hot)\b/i,
         UPCOMING: /\b(upcoming|next season|new anime|future|announced)\b/i,
         CHARACTERS: /\b(character|protagonist|who is|main character|villain|antagonist|cast|voice actor)\b/i,
-        FACTUAL: /\b(how many\s+episodes?|total\s+episodes?|episode\s+count|number of\s+episodes?|when did.*air|release date|studio.*name|who is the main character)\b/i,
+        FACTUAL: /\b(how many\s+episodes?|total\s+episodes?|episode\s+count|number of\s+episodes?|episodes?\s*$|when did.*air|release date|studio.*name|who is the main character)\b/i,
         RELEASE: /\b(release|when.*next|when.*come|airing|schedule)\b/i,
         ANALYSIS: /\b(symbolism|theme|analysis|meaning|deep|philosophy|why did|why does|system)\b/i,
         GREETING: /\b(hello|hi |hey |greetings|good morning|what can you do|help)\b/i,
