@@ -3,6 +3,15 @@
 let currentChatId = null, currentMode = 'general', isProcessing = false;
 let quizState = null; // Legacy quiz tracking (v8 compat)
 
+// 5. Debug Mode & Fast Cache
+const DEBUG_MODE = false;
+const _originalLog = console.log;
+const _originalWarn = console.warn;
+console.log = function (...args) { if (DEBUG_MODE) _originalLog.apply(console, args); };
+console.warn = function (...args) { if (DEBUG_MODE) _originalWarn.apply(console, args); };
+
+const queryResponseCache = {}; // Quick memory cache
+
 // ══════════ AI CHAT MEMORY INTERCEPTOR (v12) ══════════
 const _originalLLMChat = typeof LLMRouter !== 'undefined' ? LLMRouter.chat : null;
 if (_originalLLMChat) {
@@ -188,6 +197,55 @@ function setupInputHandlers() {
             currentMode = chip.dataset.mode;
         });
     });
+
+    // 1. Smart Search Autocomplete UI Inject
+    const autocompleteContainer = document.createElement('div');
+    autocompleteContainer.id = 'autocompleteSuggestions';
+    autocompleteContainer.className = 'autocomplete-container';
+    autocompleteContainer.style.cssText = 'display:none; position:absolute; bottom:100%; left:0; right:0; background:var(--bg-secondary); border:1px solid var(--border-light); border-radius:12px; margin-bottom:8px; overflow:hidden; z-index:10; box-shadow: 0 10px 30px rgba(0,0,0,0.5);';
+    chatInput.parentElement.style.position = 'relative';
+    chatInput.parentElement.appendChild(autocompleteContainer);
+
+    chatInput.addEventListener('input', () => {
+        const q = chatInput.value.trim().toLowerCase();
+        if (q.length >= 2 && typeof window.getAnimeSuggestions === 'function') {
+            const suggestions = window.getAnimeSuggestions(q);
+            if (suggestions.length > 0) {
+                autocompleteContainer.innerHTML = suggestions.map(s => `
+                    <div class="suggestion-item" style="padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border-light); display:flex; align-items:center; gap: 12px; transition: background 0.2s;" onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'" onclick="document.getElementById('chatInput').value='${s.title.replace(/'/g, "\\'")}'; document.getElementById('autocompleteSuggestions').style.display='none'; document.getElementById('chatInput').focus();">
+                        <img src="${s.images?.jpg?.image_url || ''}" style="width: 32px; height: 44px; border-radius: 4px; object-fit: cover;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary);">${s.title}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-tertiary);">⭐ ${s.score || 'N/A'} • ${s.episodes || '?'} eps</div>
+                        </div>
+                    </div>
+                `).join('');
+                autocompleteContainer.style.display = 'block';
+            } else {
+                autocompleteContainer.style.display = 'none';
+            }
+        } else {
+            autocompleteContainer.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!chatInput.parentElement.contains(e.target)) autocompleteContainer.style.display = 'none';
+    });
+}
+
+window.getAnimeSuggestions = function (query) {
+    if (!AnimeAPI || !AnimeAPI.popularAnimeCache) return [];
+    const q = query.toLowerCase();
+    const suggestions = [];
+    for (const [key, anime] of AnimeAPI.popularAnimeCache.entries()) {
+        if (anime.title.toLowerCase().includes(q) || (anime.title_english && anime.title_english.toLowerCase().includes(q))) {
+            if (!suggestions.some(s => s.mal_id === anime.mal_id)) {
+                suggestions.push(anime);
+            }
+        }
+    }
+    return suggestions.sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 5);
 }
 
 function handleQueryParam() { const q = new URLSearchParams(window.location.search).get('q'); if (q) { chatInput.value = q; sendMessage(); } }
@@ -231,7 +289,17 @@ async function sendMessage() {
     chatInput.value = ''; chatInput.style.height = 'auto';
     const loadingId = showLoading();
     try {
-        const response = await generateResponse(text);
+        const queryKey = text.toLowerCase().trim();
+        let response = '';
+
+        if (queryResponseCache[queryKey] && (Date.now() - queryResponseCache[queryKey].timestamp) < 3600000) {
+            response = queryResponseCache[queryKey].data;
+            _originalLog(`[Cache Hit] Query cached: "${queryKey}"`);
+        } else {
+            response = await generateResponse(text);
+            queryResponseCache[queryKey] = { data: response, timestamp: Date.now() };
+        }
+
         removeLoading(loadingId);
         appendMessage('ai', response);
         ChatHistoryManager.addMessage(currentChatId, 'ai', response);
@@ -1362,6 +1430,79 @@ function generateGreeting() {
     const graphStats = (typeof AnimeGraph !== 'undefined') ? AnimeGraph.getStats() : null;
     const graphInfo = graphStats ? ` **${graphStats.totalCharacters}** characters, **${graphStats.totalThemes}** themes, **${graphStats.totalEdges}** relationships` : '';
     return `## 👋 Hey there, anime fan!\n\nI'm **AnimeSense AI v10** — your expert anime companion powered by **live MyAnimeList data**, **${kbCount}-anime Knowledge Base**, **Knowledge Graph**,${graphInfo ? graphInfo + ',' : ''} **AI analysis**, and **smart entity detection**.\n\n**What I can do:**\n- 🔍 **Details** — "Tell me about Jujutsu Kaisen"\n- 🔎 **Identify** — "Anime where a boy eats a cursed finger" *(AI-powered!)*\n- 🎮 **Quiz** — "Anime quiz" *(test your knowledge!)*\n- 🎭 **Personality** — "Personality test" *(find your anime match!)*\n- 📋 **Watchlist** — "I watched Naruto" or "Show my watchlist"\n- ⚔️ **Power Arena** — "Goku vs Saitama" *(deep power scaling analysis!)*\n- 📺 **Seasons** — "Dandadan season 3" or "latest season"\n- 🎯 **Recommend** — "Recommend dark psychological anime" *(personalized!)*\n- 📖 **Endings** — "Explain the ending of Death Note" *(AI-powered!)*\n- 🔄 **Watch Order** — "Fate series watch order"\n- 🔥 **Trending** — "What's trending right now?"\n- 🧠 **Analysis** — "Analyze the themes of Evangelion"\n- 📚 **Knowledge** — Deep power system, arc, and theme knowledge for ${kbCount}+ anime\n- 📊 **Quiz Stats** — "Quiz stats" *(see your record!)*\n\n> 🧠 I **remember** your history, **track** your watchlist, **analyze battles**, and **auto-detect** characters, seasons, and titles!\n\nJust ask anything! ✨`;
+}
+
+// ══════════ ENGINE UPGRADES ══════════
+
+async function handleTrending(query) {
+    const CACHE_KEY = 'animesense_trending_cache';
+    const CACHE_LIFESPAN = 12 * 60 * 60 * 1000;
+
+    let trendingData = null;
+    try {
+        const stored = localStorage.getItem(CACHE_KEY);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Date.now() - parsed.timestamp < CACHE_LIFESPAN) trendingData = parsed.data;
+        }
+    } catch (e) { }
+
+    if (!trendingData) {
+        try {
+            const res = await AnimeAPI.getTopAnime(1, 10, 'airing');
+            if (res && res.data) {
+                trendingData = res.data.slice(0, 10);
+                localStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data: trendingData }));
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    if (!trendingData) return "I couldn't fetch the trending anime right now. Please try again later.";
+
+    let response = `## 🔥 Top Trending Anime Right Now:\n\n`;
+    trendingData.forEach((a, i) => {
+        response += `${i + 1}. **${a.title}**\n`;
+    });
+    return response;
+}
+
+async function handleRecommendSimilar(anime) {
+    let response = `## 🎯 Recommended Anime like **${anime.title}**\n\n`;
+    try {
+        const suggestions = [];
+        if (typeof AnimeAPI !== 'undefined' && AnimeAPI.popularAnimeCache) {
+            const targetGenres = (anime.genres || []).map(g => g.name);
+            const targetScore = anime.score || 7;
+
+            for (const [key, cached] of AnimeAPI.popularAnimeCache.entries()) {
+                if (cached.mal_id === anime.mal_id) continue;
+
+                const cachedGenres = (cached.genres || []).map(g => g.name);
+                const sharedCount = targetGenres.filter(g => cachedGenres.includes(g)).length;
+
+                if (sharedCount >= 1) {
+                    const scoreDiff = Math.abs((cached.score || 0) - targetScore);
+                    if (scoreDiff <= 1.0) {
+                        if (!suggestions.some(s => s.mal_id === cached.mal_id)) {
+                            suggestions.push({ anime: cached, sharedCount });
+                        }
+                    }
+                }
+            }
+
+            suggestions.sort((a, b) => b.sharedCount - a.sharedCount || (b.anime.score || 0) - (a.anime.score || 0));
+            const topMatches = suggestions.slice(0, 5).map(s => s.anime);
+
+            if (topMatches.length > 0) {
+                topMatches.forEach(a => {
+                    response += `• **${a.title}**\n`;
+                });
+                return response;
+            }
+        }
+    } catch (e) { console.error(e); }
+
+    return "I couldn't find exact similar recommendations right now.";
 }
 
 function generateFallbackResponse() {
