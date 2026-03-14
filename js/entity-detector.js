@@ -163,6 +163,7 @@ const EntityDetector = (() => {
         const q = query.toLowerCase().replace(/[?!.'"]/g, '');
         const result = {
             intent: null,
+            confidence: 0,
             animeTitles: [],
             characters: [],
             characterAnime: [],
@@ -174,8 +175,10 @@ const EntityDetector = (() => {
             cleanedQuery: q
         };
 
-        // 1. Detect intent
-        result.intent = classifyIntent(q);
+        // 1. Detect intent and confidence
+        const classification = classifyIntent(q);
+        result.intent = classification.name;
+        result.confidence = classification.score;
 
         // 2. Detect battle mode (overrides compare)
         if (BATTLE_PATTERN.test(q)) {
@@ -212,37 +215,39 @@ const EntityDetector = (() => {
 
     // ══════════ INTENT CLASSIFIER ══════════
     function classifyIntent(q) {
-        // Personality test — highest priority
-        if (INTENTS.PERSONALITY_TEST.test(q)) return 'PERSONALITY_TEST';
-        // Quiz stats
-        if (INTENTS.QUIZ_STATS.test(q)) return 'QUIZ_STATS';
-        // Quiz/Watchlist — always check first (very specific triggers)
-        if (INTENTS.QUIZ_MODE.test(q)) return 'QUIZ_MODE';
-        if (INTENTS.WATCHLIST_ADD.test(q)) return 'WATCHLIST_ADD';
-        if (INTENTS.WATCHLIST_SHOW.test(q)) return 'WATCHLIST_SHOW';
-        // DESCRIBE ANIME — hardened: if query looks like a description, never route to battle
-        if (INTENTS.DESCRIBE_ANIME.test(q)) return 'DESCRIBE_ANIME';
-        // Also catch "i remember/forgot an anime" patterns
-        if (/i\s+(saw|remember|forgot).+anime/i.test(q)) return 'DESCRIBE_ANIME';
-        // Battle (only fires if NOT a description)
-        if (INTENTS.CHARACTER_BATTLE.test(q)) return 'CHARACTER_BATTLE';
-        // Season query next
-        if (INTENTS.SEASON_QUERY.test(q)) return 'SEASON_QUERY';
-        // Standard intents
-        if (INTENTS.ENDING_EXPLANATION.test(q)) return 'ENDING_EXPLANATION';
-        if (INTENTS.FACTUAL.test(q)) return 'FACTUAL';
-        if (INTENTS.RELEASE.test(q)) return 'RELEASE';
-        if (INTENTS.WATCH_ORDER.test(q)) return 'WATCH_ORDER';
-        if (INTENTS.RECOMMENDATION.test(q)) return 'RECOMMENDATION';
-        if (INTENTS.CHARACTERS.test(q)) return 'CHARACTERS';
-        if (INTENTS.ANALYSIS.test(q)) return 'ANALYSIS';
-        if (INTENTS.TRENDING.test(q)) return 'TRENDING';
-        if (INTENTS.UPCOMING.test(q)) return 'UPCOMING';
-        if (INTENTS.GREETING.test(q)) return 'GREETING';
-        if (INTENTS.SEARCH.test(q)) return 'SEARCH';
-        if (INTENTS.SUMMARY.test(q)) return 'SUMMARY';
-        if (INTENTS.DISCOVERY.test(q)) return 'DISCOVERY';
-        return 'ANIME_INFO';
+        // High confidence direct matches
+        if (INTENTS.PERSONALITY_TEST.test(q)) return { name: 'PERSONALITY_TEST', score: 0.99 };
+        if (INTENTS.QUIZ_STATS.test(q)) return { name: 'QUIZ_STATS', score: 0.99 };
+        if (INTENTS.QUIZ_MODE.test(q)) return { name: 'QUIZ_MODE', score: 0.95 };
+        if (INTENTS.WATCHLIST_ADD.test(q)) return { name: 'WATCHLIST_ADD', score: 0.95 };
+        if (INTENTS.WATCHLIST_SHOW.test(q)) return { name: 'WATCHLIST_SHOW', score: 0.95 };
+
+        if (INTENTS.DESCRIBE_ANIME.test(q)) return { name: 'DESCRIBE_ANIME', score: 0.90 };
+        if (/i\s+(saw|remember|forgot).+anime/i.test(q)) return { name: 'DESCRIBE_ANIME', score: 0.90 };
+        if (INTENTS.CHARACTER_BATTLE.test(q)) return { name: 'CHARACTER_BATTLE', score: 0.95 };
+        if (INTENTS.SEASON_QUERY.test(q)) return { name: 'SEASON_QUERY', score: 0.85 };
+
+        // Standard intents - calculate confidence based on input length / specificity if needed, but static is fine
+        if (INTENTS.ENDING_EXPLANATION.test(q)) return { name: 'ENDING_EXPLANATION', score: 0.92 };
+        if (INTENTS.FACTUAL.test(q)) return { name: 'FACTUAL', score: 0.95 };
+        if (INTENTS.RELEASE.test(q)) return { name: 'RELEASE', score: 0.88 };
+        if (INTENTS.WATCH_ORDER.test(q)) return { name: 'WATCH_ORDER', score: 0.90 };
+        if (INTENTS.RECOMMENDATION.test(q)) return { name: 'RECOMMENDATION', score: 0.85 };
+        if (INTENTS.CHARACTERS.test(q)) return { name: 'CHARACTERS', score: 0.85 };
+        if (INTENTS.ANALYSIS.test(q)) return { name: 'ANALYSIS', score: 0.98 }; // "explain chakra" is very explicit
+        if (INTENTS.TRENDING.test(q)) return { name: 'TRENDING', score: 0.90 };
+        if (INTENTS.UPCOMING.test(q)) return { name: 'UPCOMING', score: 0.90 };
+        if (INTENTS.GREETING.test(q)) return { name: 'GREETING', score: 0.90 };
+        if (INTENTS.SEARCH.test(q)) return { name: 'SEARCH', score: 0.80 };
+        if (INTENTS.SUMMARY.test(q)) return { name: 'SUMMARY', score: 0.85 };
+        if (INTENTS.DISCOVERY.test(q)) return { name: 'DISCOVERY', score: 0.80 };
+
+        // Very short queries defaulting to DISCOVERY might be low confidence
+        if (q.split(' ').length <= 3) {
+            return { name: 'DISCOVERY', score: 0.40 }; // Low confidence
+        }
+
+        return { name: 'ANIME_INFO', score: 0.30 }; // Fallback
     }
 
     // ══════════ SEASON DETECTION ══════════

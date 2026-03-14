@@ -251,6 +251,9 @@ async function sendMessage() {
 // ══════════ ENTITY-POWERED RESPONSE ROUTER ══════════
 // Uses EntityDetector as a preprocessing layer before API calls.
 
+// Tracks the last anime discussed for context awareness
+let lastDiscussedAnimeTitle = null;
+
 async function generateResponse(query) {
     // ── Intercept quiz answers (v10: support both AnimeQuiz and legacy quizState) ──
     if ((typeof AnimeQuiz !== 'undefined' && AnimeQuiz.isActive()) && /^[a-d]$/i.test(query.trim())) {
@@ -336,7 +339,26 @@ async function generateResponse(query) {
     }
 
     // Determine the primary anime title (from entity detection)
-    const primaryTitle = entities.animeTitles[0] || null;
+    let primaryTitle = entities.animeTitles[0] || null;
+
+    // Apply context awareness if user uses pronouns or implicit context
+    const isContextualQuery = /\b(it|this|that|he|she|they|the anime|the show|it's)\b/i.test(query) || ['FACTUAL', 'SUMMARY', 'ANALYSIS', 'ENDING_EXPLANATION', 'RELEASE'].includes(intent);
+    if (!primaryTitle && lastDiscussedAnimeTitle && isContextualQuery) {
+        primaryTitle = lastDiscussedAnimeTitle;
+        console.log(`[METRIC] Context resolved to: ${primaryTitle}`);
+    }
+
+    // Smart Intent Clarification for very short, ambiguous queries
+    if (entities.confidence < 0.5 && entities.animeTitles.length > 0 && query.trim().split(' ').length <= 2) {
+        // Even if we know the title, ask what they want to know
+        const titleName = entities.animeTitles[0];
+        return `Are you looking for **${titleName}** anime details or episode count?`;
+    }
+
+    if (primaryTitle) {
+        lastDiscussedAnimeTitle = primaryTitle; // Update global context tracker
+    }
+
 
     // Watch order — use database first
     if (intent === 'WATCH_ORDER' && primaryTitle) {
@@ -382,7 +404,20 @@ async function generateResponse(query) {
                     default: return await buildFullDetailResponse(anime, null);
                 }
             }
-        } catch (e) { console.error('API error:', e); }
+        } catch (e) {
+            console.error('API error:', e);
+            // 7. Error Recovery System
+            const fallbackMsg = `Anime data service is temporarily unavailable. Here's what I know...`;
+            try {
+                const llmFallback = await LLMRouter.chat([
+                    { role: 'system', content: LLMRouter.ANIME_SYSTEM_PROMPT },
+                    { role: 'user', content: `The external data API is down. Answer this question to the best of your implicit knowledge: "${query}"` }
+                ], { maxTokens: 600 });
+                return `⚠️ *${fallbackMsg}*\n\n` + llmFallback.content;
+            } catch (llmErr) {
+                return `⚠️ *${fallbackMsg}*\n\nI couldn't reach my AI backend either right now. Please try again later!`;
+            }
+        }
     }
 
     if (intent === 'RECOMMENDATION') return await handleSmartRecommend(query);
@@ -1181,22 +1216,28 @@ async function handleGeneralLLM(query) {
 
 function extractFactualResponse(query, anime) {
     const q = query.toLowerCase();
+    let answer = null;
+    let suggestion = '';
 
     if (q.includes('how many episode') || q.includes('total episode') || q.includes('episode count') || q.includes('number of episode') || q.match(/\bepisodes?\s*$/)) {
-        return `**${anime.title}** has **${anime.episodes || 'Unknown'}** episodes.`;
-    }
-
-    if (q.includes('when did') || q.includes('release date') || q.includes('air date') || q.includes('start') || q.includes('airing')) {
-        return `**${anime.title}** aired from **${anime.aired?.string || 'Unknown'}**.`;
-    }
-
-    if (q.includes('studio') || q.includes('animated by')) {
+        answer = `**${anime.title}** has **${anime.episodes || 'Unknown'}** episodes.`;
+        suggestion = `> 💡 *Would you like to know when it first aired?*`;
+    } else if (q.includes('when did') || q.includes('release date') || q.includes('air date') || q.includes('start') || q.includes('airing')) {
+        answer = `**${anime.title}** aired from **${anime.aired?.string || 'Unknown'}**.`;
+        suggestion = `> 💡 *Would you like to know how many episodes it has?*`;
+    } else if (q.includes('studio') || q.includes('animated by')) {
         const studios = (anime.studios || []).map(s => s.name).join(', ') || 'an unknown studio';
-        return `**${anime.title}** was animated by **${studios}**.`;
+        answer = `**${anime.title}** was animated by **${studios}**.`;
+    } else if (q.includes('score') || q.includes('rating') || q.includes('how good')) {
+        answer = `**${anime.title}** has a score of **⭐ ${anime.score || 'N/A'}/10** on MyAnimeList.`;
     }
 
-    if (q.includes('score') || q.includes('rating') || q.includes('how good')) {
-        return `**${anime.title}** has a score of **⭐ ${anime.score || 'N/A'}/10** on MyAnimeList.`;
+    if (answer) {
+        // Smart Follow-Up Suggestions: only occasional (~30%) to prevent spam
+        if (suggestion && Math.random() > 0.7) {
+            return `${answer}\n\n${suggestion}`;
+        }
+        return answer;
     }
 
     return null; // Let LLM handle other facts
