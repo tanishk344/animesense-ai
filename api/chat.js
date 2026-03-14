@@ -113,6 +113,7 @@ async function callProvider(provider, messages, options = {}) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
 
+    const t0 = Date.now();
     try {
         const response = await fetch(config.baseUrl, {
             method: 'POST',
@@ -120,6 +121,13 @@ async function callProvider(provider, messages, options = {}) {
             body: JSON.stringify(body),
             signal: controller.signal
         });
+
+        const duration = Date.now() - t0;
+        if (duration > 5000) {
+            console.warn(`[METRIC_SLOW_AI] Provider: ${provider}, Model: ${model}, Time: ${duration}ms`);
+        } else {
+            console.log(`[METRIC_AI] Provider: ${provider}, Model: ${model}, Time: ${duration}ms`);
+        }
 
         clearTimeout(timeout);
 
@@ -250,14 +258,18 @@ export default async function handler(req) {
                     }
 
                     if (err.message.startsWith('HTTP_')) {
+                        console.error(`[METRIC_API_ERROR] ${provider} failed with ${err.message}`);
                         rotateModel(provider);
                         continue;
                     }
 
+                    console.error(`[METRIC_FAIL] Provider ${provider} failed completely:`, err.message);
                     break;
                 }
             }
         }
+
+        console.error(`[METRIC_FATAL] All AI providers exhausted`);
 
         return new Response(JSON.stringify({ error: 'ALL_PROVIDERS_FAILED', details: errors }), {
             status: 500,

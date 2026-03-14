@@ -274,7 +274,12 @@ async function generateResponse(query) {
     // ── Step 1: Run Entity Detection ──
     const entities = EntityDetector.detect(query);
     const intent = entities.intent;
-    console.log('[EntityDetector]', intent, entities);
+
+    if (!intent || intent === 'ANIME_INFO') {
+        console.warn(`[METRIC] Classification Ambiguous/Fallback: "${query}" -> ${intent}`);
+    } else {
+        console.log(`[METRIC] Classified Intent: "${query}" -> ${intent}`);
+    }
 
     // Intent shortcuts
     if (intent === 'GREETING') return generateGreeting();
@@ -356,21 +361,25 @@ async function generateResponse(query) {
                 userMemory.trackInteraction(anime.title);
                 userMemory.addGenres((anime.genres || []).map(g => g.name));
 
-                const needsLLM = ['ENDING_EXPLANATION', 'ANALYSIS', 'ANIME_INFO', 'FACTUAL'].includes(intent) || currentMode === 'analysis';
+                const needsLLM = ['ENDING_EXPLANATION', 'ANALYSIS', 'SUMMARY'].includes(intent) || currentMode === 'analysis';
 
                 if (needsLLM) return await handleLLMQuery(query, intent, anime);
 
                 switch (intent) {
-                    case 'FACTUAL': return await handleLLMQuery(query, intent, anime);
+                    case 'FACTUAL': {
+                        const directFactual = extractFactualResponse(query, anime);
+                        if (directFactual) return directFactual;
+                        return await handleLLMQuery(query, intent, anime);
+                    }
                     case 'RELEASE': return buildReleaseResponse(anime, [anime]);
-                    case 'EXPLAIN': case 'SEARCH': return await handleLLMDetail(query, anime);
+                    case 'DISCOVERY': case 'SEARCH': case 'ANIME_INFO': return await buildFullDetailResponse(anime, null);
                     case 'WATCH_ORDER': {
                         const sr = await AnimeAPI.searchAnime(primaryTitle, 1, 10);
                         return buildWatchOrderFallback(anime, sr.data || [anime]);
                     }
                     case 'CHARACTERS': return await buildCharacterResponse(anime);
                     case 'RECOMMENDATION': return await handleRecommendSimilar(anime);
-                    default: return await handleLLMDetail(query, anime);
+                    default: return await buildFullDetailResponse(anime, null);
                 }
             }
         } catch (e) { console.error('API error:', e); }
@@ -816,7 +825,8 @@ async function handleLLMQuery(query, queryType, anime) {
         ENDING_EXPLANATION: 'Provide a detailed ending explanation with spoilers. Explain the themes, character arcs, and authorial intent. Reference specific scenes and plot twists.',
         ANALYSIS: 'Provide deep thematic analysis. Discuss symbolism, character psychology, narrative techniques, and the power system. Reference the author\'s storytelling approach.',
         CHARACTER_BATTLE: 'Compare and contrast the anime with others in its genre. Analyze power systems and character feats.',
-        FACTUAL: 'Answer this factual question as concisely as possible in 1-2 sentences. Do NOT elaborate or add unnecessary sections.',
+        FACTUAL: 'Answer this factual question as concisely as possible in 1-2 sentences. Use natural casing, avoid ALL CAPS titles, and do NOT elaborate or add unnecessary sections.',
+        SUMMARY: 'Provide a short, well-structured 1-paragraph summary of the story or plot.',
         ANIME_INFO: 'Provide comprehensive information about this anime including power system, key arcs, and notable aspects.'
     };
     const memoryCtx = userMemory.getContext();
@@ -1152,6 +1162,29 @@ async function handleGeneralLLM(query) {
     } catch (e) {
         return generateFallbackResponse(query);
     }
+}
+
+function extractFactualResponse(query, anime) {
+    const q = query.toLowerCase();
+
+    if (q.includes('how many episode') || q.includes('total episode') || q.includes('episode count') || q.includes('number of episode')) {
+        return `**${anime.title}** has **${anime.episodes || 'Unknown'}** episodes.`;
+    }
+
+    if (q.includes('when did') || q.includes('release date') || q.includes('air date') || q.includes('start') || q.includes('airing')) {
+        return `**${anime.title}** aired from **${anime.aired?.string || 'Unknown'}**.`;
+    }
+
+    if (q.includes('studio') || q.includes('animated by')) {
+        const studios = (anime.studios || []).map(s => s.name).join(', ') || 'an unknown studio';
+        return `**${anime.title}** was animated by **${studios}**.`;
+    }
+
+    if (q.includes('score') || q.includes('rating') || q.includes('how good')) {
+        return `**${anime.title}** has a score of **⭐ ${anime.score || 'N/A'}/10** on MyAnimeList.`;
+    }
+
+    return null; // Let LLM handle other facts
 }
 
 // ══════════ DATA-ONLY BUILDERS (fallback) ══════════

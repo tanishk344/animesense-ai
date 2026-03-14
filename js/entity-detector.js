@@ -149,12 +149,13 @@ const EntityDetector = (() => {
         TRENDING: /\b(trending|popular|top anime|best anime|right now|what.*hot)\b/i,
         UPCOMING: /\b(upcoming|next season|new anime|future|announced)\b/i,
         CHARACTERS: /\b(character|protagonist|who is|main character|villain|antagonist|cast|voice actor)\b/i,
-        FACTUAL: /\b(how many\s+episodes?|total\s+episodes?|episode\s+count|number of\s+episodes?)\b/i,
+        FACTUAL: /\b(how many\s+episodes?|total\s+episodes?|episode\s+count|number of\s+episodes?|when did.*air|release date|studio.*name|who is the main character)\b/i,
         RELEASE: /\b(release|when.*next|when.*come|airing|schedule)\b/i,
-        ANALYSIS: /\b(symbolism|theme|analysis|meaning|deep|philosophy|why did|why does)\b/i,
+        ANALYSIS: /\b(symbolism|theme|analysis|meaning|deep|philosophy|why did|why does|system)\b/i,
         GREETING: /\b(hello|hi |hey |greetings|good morning|what can you do|help)\b/i,
         SEARCH: /\b(search|find|look up|look for)\b/i,
-        EXPLAIN: /\b(explain|storyline|plot|what.*about|synopsis|summary|recap|what happens|tell me about|details about|info about)\b/i
+        SUMMARY: /\b(explain|storyline|plot|what.*about|synopsis|summary|summarize|recap|what happens)\b/i,
+        DISCOVERY: /\b(show.*info|anime details|info about|details about|tell me about)\b/i
     };
 
     // ══════════ CORE: DETECT ENTITIES ══════════
@@ -239,7 +240,8 @@ const EntityDetector = (() => {
         if (INTENTS.UPCOMING.test(q)) return 'UPCOMING';
         if (INTENTS.GREETING.test(q)) return 'GREETING';
         if (INTENTS.SEARCH.test(q)) return 'SEARCH';
-        if (INTENTS.EXPLAIN.test(q)) return 'EXPLAIN';
+        if (INTENTS.SUMMARY.test(q)) return 'SUMMARY';
+        if (INTENTS.DISCOVERY.test(q)) return 'DISCOVERY';
         return 'ANIME_INFO';
     }
 
