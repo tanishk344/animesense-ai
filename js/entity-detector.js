@@ -158,9 +158,31 @@ const EntityDetector = (() => {
         DISCOVERY: /\b(show.*info|anime details|info about|details about|tell me about)\b/i
     };
 
+    // ══════════ QUERY NORMALIZATION ══════════
+    function normalizeQuery(query) {
+        let q = query.toLowerCase().replace(/[?!.'"]/g, '').replace(/\s+/g, ' ').trim();
+
+        // 1. Map common abbreviations
+        q = q.replace(/\banime\s+eps\b/g, 'anime episodes');
+        q = q.replace(/\beps\b/g, 'episodes');
+        q = q.replace(/\bep\b/g, 'episode');
+
+        // 2. Normalize sentence structures
+        if (!q.startsWith('how many ') && !q.startsWith('what ') && !q.startsWith('which ')) {
+            q = q.replace(/^(.+?)\s+episodes?$/g, 'how many episodes does $1 have');
+        }
+        q = q.replace(/^episodes?\s+of\s+(.+)$/g, 'how many episodes does $1 have');
+
+        return q;
+    }
+
     // ══════════ CORE: DETECT ENTITIES ══════════
     function detect(query) {
-        const q = query.toLowerCase().replace(/[?!.'"]/g, '');
+        const q = normalizeQuery(query);
+
+        console.log(`[NORMALIZE] original_query: "${query}"`);
+        console.log(`[NORMALIZE] normalized_query: "${q}"`);
+
         const result = {
             intent: null,
             confidence: 0,
