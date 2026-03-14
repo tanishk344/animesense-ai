@@ -379,6 +379,16 @@ async function generateResponse(query) {
             );
 
             if (anime) {
+                // 1. Data Validation Guard
+                if (anime.title == null || anime.episodes == null || anime.score == null) {
+                    console.warn(`[Validation Failed] Incomplete data for: ${primaryTitle}`, {
+                        title: anime.title,
+                        episodes: anime.episodes,
+                        score: anime.score
+                    });
+                    return "I couldn't retrieve complete data for this anime right now. Please try again in a moment.";
+                }
+
                 // Update memory
                 userMemory.trackInteraction(anime.title);
                 userMemory.addGenres((anime.genres || []).map(g => g.name));
