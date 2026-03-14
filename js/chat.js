@@ -825,7 +825,7 @@ async function handleLLMQuery(query, queryType, anime) {
         ENDING_EXPLANATION: 'Provide a detailed ending explanation with spoilers. Explain the themes, character arcs, and authorial intent. Reference specific scenes and plot twists.',
         ANALYSIS: 'Provide deep thematic analysis. Discuss symbolism, character psychology, narrative techniques, and the power system. Reference the author\'s storytelling approach.',
         CHARACTER_BATTLE: 'Compare and contrast the anime with others in its genre. Analyze power systems and character feats.',
-        FACTUAL: 'Answer this factual question as concisely as possible in 1-2 sentences. Use natural casing, avoid ALL CAPS titles, and do NOT elaborate or add unnecessary sections.',
+        FACTUAL: 'Answer this factual question as concisely as possible in exactly 1-2 sentences. Do NOT add markdown tables, headers, lists, character info, plot summaries, or extra facts. Just answer the specific question asked.',
         SUMMARY: 'Provide a short, well-structured 1-paragraph summary of the story or plot.',
         ANIME_INFO: 'Provide comprehensive information about this anime including power system, key arcs, and notable aspects.'
     };
@@ -835,9 +835,15 @@ async function handleLLMQuery(query, queryType, anime) {
         { role: 'user', content: `${typeHints[queryType] || ''}\n\nUser question: "${query}"${memoryCtx ? '\n\nUser context:' + memoryCtx : ''}\n\n${context}` }
     ];
     try {
-        const result = await LLMRouter.chat(messages, { maxTokens: 1500, temperature: 0.7 });
-        const kbTag = (typeof AnimeKnowledge !== 'undefined' && AnimeKnowledge.lookup(anime.title)) ? ' + Knowledge Base' : '';
-        return result.content + `\n\n> 🤖 *AI analysis by AnimeSense AI Analysis Engine${kbTag}*`;
+        let responseText = result.content;
+
+        // Remove footer for strict factual responses
+        if (queryType !== 'FACTUAL') {
+            const kbTag = (typeof AnimeKnowledge !== 'undefined' && AnimeKnowledge.lookup(anime.title)) ? ' + Knowledge Base' : '';
+            responseText += `\n\n> 🤖 *AI analysis by AnimeSense AI Analysis Engine${kbTag}*`;
+        }
+
+        return responseText;
     } catch (e) {
         console.error('LLM failed:', e);
         return await buildFullDetailResponse(anime, charData);
@@ -1152,12 +1158,21 @@ async function handleGeneralLLM(query) {
         }
     }
     const memoryCtx = userMemory.getContext();
+    const isFactualHint = /how many|when did|who is|who created|total|count|release date/i.test(query);
+    const userPromptContent = isFactualHint
+        ? `Answer this factual question as concisely as possible in exactly 1-2 sentences. Do NOT add markdown tables, headers, lists, character info, plot summaries, or extra facts. Just answer the specific question asked.\n\nUser question: "${query}"${memoryCtx ? '\n\nUser context:' + memoryCtx : ''}${knowledgeCtx}`
+        : `${query}${memoryCtx ? '\n\nUser context:' + memoryCtx : ''}${knowledgeCtx}`;
+
     const messages = [
         { role: 'system', content: LLMRouter.ANIME_SYSTEM_PROMPT },
-        { role: 'user', content: `${query}${memoryCtx ? '\n\nUser context:' + memoryCtx : ''}${knowledgeCtx}` }
+        { role: 'user', content: userPromptContent }
     ];
     try {
         const result = await LLMRouter.chat(messages, { maxTokens: 1200, temperature: 0.7 });
+
+        // Return without footer for simple factual responses
+        if (isFactualHint) return result.content;
+
         return result.content + `\n\n> 🤖 *AnimeSense Intelligence Engine*`;
     } catch (e) {
         return generateFallbackResponse(query);
