@@ -70,55 +70,68 @@ const DiscoveryFeed = (() => {
             </div>`;
     }
 
+    // ── Local Cache ──
+    function getCachedData(key) {
+        const cached = localStorage.getItem(key);
+        return cached ? JSON.parse(cached) : null;
+    }
+
+    function setCachedData(key, data) {
+        localStorage.setItem(key, JSON.stringify(data));
+    }
+
     // ── Data Fetchers ──
-    async function fetchWithRetry(url, retries = 2) {
+    async function fetchWithRetry(url, retries = 2, delay = 1000) {
         try {
+            await new Promise(res => setTimeout(res, delay)); // prevent rate limit
             const res = await fetch(url);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
+            
             console.log("API RESPONSE:", data);
             return data;
         } catch (err) {
             console.error("API ERROR:", err);
+            
             if (retries > 0) {
-                console.warn(`[API] Retrying ${url}... (${retries} retries left)`);
-                await sleep(RATE_DELAY * 2);
-                return fetchWithRetry(url, retries - 1);
+                console.log(`Retrying... (${retries} left)`);
+                return fetchWithRetry(url, retries - 1, delay * 2);
             }
-            throw err;
-        }
-    }
-
-    async function fetchJSON(url) {
-        try {
-            if (typeof AnimeAPI !== 'undefined' && AnimeAPI._fetch) {
-                const endpoint = url.replace(JIKAN, '');
-                const res = await AnimeAPI._fetch(endpoint, true);
-                if (res) return res;
-            }
-            return await fetchWithRetry(url, 2);
-        } catch (error) {
-            console.error(`[API] Fetch Error for ${url}:`, error);
-            // Return safe fallback so skeletons are cleared if the API triggers a rate limit or fails
+            
             return { data: [] };
         }
     }
 
+    async function getAnimeData(url, cacheKey) {
+        const cached = getCachedData(cacheKey);
+
+        if (cached) {
+            console.log("Using cached data");
+            return cached;
+        }
+
+        const data = await fetchWithRetry(url);
+
+        if (data && data.data && data.data.length > 0) {
+            setCachedData(cacheKey, data);
+            return data;
+        }
+
+        return { data: [] };
+    }
+
     async function fetchTrending() {
-        const data = await fetchJSON(`${JIKAN}/seasons/now?limit=12`);
+        const data = await getAnimeData(`${JIKAN}/seasons/now?limit=12`, 'cache_trending');
         return (data && data.data && data.data.length > 0) ? data.data : [];
     }
 
     async function fetchTopRated() {
-        const data = await fetchJSON(`${JIKAN}/top/anime?limit=12`);
+        const data = await getAnimeData(`${JIKAN}/top/anime?limit=12`, 'cache_topRated');
         return (data && data.data && data.data.length > 0) ? data.data : [];
     }
 
     async function fetchHiddenGems() {
-        // Fetch anime with high scores but lower popularity (rank > 500)
-        const data = await fetchJSON(`${JIKAN}/top/anime?limit=25&filter=bypopularity&page=3`);
+        const data = await getAnimeData(`${JIKAN}/top/anime?limit=25&filter=bypopularity&page=3`, 'cache_hiddenGems');
         if (!data || !data.data || data.data.length === 0) return [];
-        // Filter for high-quality hidden gems
         const gems = data.data.filter(a =>
             a.score && a.score >= 7.5 &&
             a.popularity && a.popularity > 400
@@ -127,12 +140,12 @@ const DiscoveryFeed = (() => {
     }
 
     async function fetchUpcoming() {
-        const data = await fetchJSON(`${JIKAN}/seasons/upcoming?limit=12`);
+        const data = await getAnimeData(`${JIKAN}/seasons/upcoming?limit=12`, 'cache_upcoming');
         return (data && data.data && data.data.length > 0) ? data.data : [];
     }
 
     async function fetchByGenre(genreId, genreName) {
-        const data = await fetchJSON(`${JIKAN}/anime?genres=${genreId}&order_by=score&sort=desc&limit=12`);
+        const data = await getAnimeData(`${JIKAN}/anime?genres=${genreId}&order_by=score&sort=desc&limit=12`, `cache_genre_${genreId}`);
         return { name: genreName, data: (data && data.data && data.data.length > 0) ? data.data : [] };
     }
 
@@ -197,12 +210,16 @@ const DiscoveryFeed = (() => {
         const renderData = (selector, data) => requestAnimationFrame(() => {
             const el = document.getElementById(selector);
             if (el) {
-                if (data && data.length > 0) {
-                    el.innerHTML = data.map(createCardHTML).join('');
+                el.innerHTML = ''; // Always clear skeleton before rendering
+
+                const list = (data && data.length > 0) ? data : [];
+                
+                if (list.length > 0) {
+                    el.innerHTML = list.map(createCardHTML).join('');
                 } else {
                     el.innerHTML = `
                         <div style="padding: 20px; color: var(--text-tertiary); text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px;">
-                            <p style="margin-bottom: 12px; font-size: 14px;">⚠️ Unable to load anime (API limit or network issue). Please try again.</p>
+                            <p style="margin-bottom: 12px; font-size: 14px;">⚠️ Unable to load anime right now</p>
                             <button onclick="location.reload()" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: white; padding: 6px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">Retry</button>
                         </div>
                     `;
