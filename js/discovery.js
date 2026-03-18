@@ -10,7 +10,7 @@ const DiscoveryFeed = (() => {
 
     function createCardHTML(anime) {
         const score = anime.score || 'N/A';
-        const img = anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url || '';
+        const img = anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url || '/fallback.jpg';
         const synopsis = (anime.synopsis || 'No synopsis available.').slice(0, 120);
         const genres = (anime.genres || []).slice(0, 3);
         const studio = (anime.studios || []).map(s => s.name).join(', ') || 'Unknown';
@@ -72,13 +72,20 @@ const DiscoveryFeed = (() => {
 
     // ── Data Fetchers ──
     async function fetchJSON(url) {
-        if (typeof AnimeAPI !== 'undefined') {
-            const endpoint = url.replace(JIKAN, '');
-            return AnimeAPI._fetch(endpoint, true);
+        try {
+            if (typeof AnimeAPI !== 'undefined' && AnimeAPI._fetch) {
+                const endpoint = url.replace(JIKAN, '');
+                const res = await AnimeAPI._fetch(endpoint, true);
+                if (res) return res;
+            }
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            return await resp.json();
+        } catch (error) {
+            console.error(`[API] Fetch Error for ${url}:`, error);
+            // Return safe fallback so skeletons are cleared if the API triggers a rate limit or fails
+            return { data: [] };
         }
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        return resp.json();
     }
 
     async function fetchTrending() {
@@ -172,7 +179,13 @@ const DiscoveryFeed = (() => {
         // Define fetchers that use the cached AnimeAPI rather than straight raw fetch
         const renderData = (selector, data) => requestAnimationFrame(() => {
             const el = document.getElementById(selector);
-            if (el && data && data.length) el.innerHTML = data.map(createCardHTML).join('');
+            if (el) {
+                if (data && data.length > 0) {
+                    el.innerHTML = data.map(createCardHTML).join('');
+                } else {
+                    el.innerHTML = '<div style="padding: 20px; color: var(--text-tertiary); text-align: center; width: 100%;">No data available right now. Please try again.</div>';
+                }
+            }
         });
 
         // Parallelize fetching

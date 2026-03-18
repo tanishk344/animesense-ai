@@ -69,9 +69,9 @@
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </button>
                 </div>
-                <a href="chat.html" class="btn btn-primary btn-nav">
-                    <i class="fas fa-comments"></i>
-                    <span>Start Chat</span>
+                <a href="chat.html" class="btn btn-primary btn-nav btn-glow">
+                    <span>Try Anime AI Now</span>
+                    <i class="fas fa-arrow-right"></i>
                 </a>
                 <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
                     <span></span><span></span><span></span>
@@ -84,42 +84,37 @@
     <section class="hero" id="hero">
         <div class="hero-container">
             <div class="hero-badge animate-fade-in">
-                <i class="fas fa-sparkles"></i>
-                <span>AnimeSense AI v10 — Full Anime Intelligence Platform</span>
+                <i class="fas fa-robot"></i>
+                <span>Powered by AI &bull; Uses real anime data (Jikan API)</span>
             </div>
             <h1 class="hero-title animate-fade-in-up">
-                Your Ultimate
-                <span class="gradient-text">Anime AI</span>
-                Assistant
+                Ask Anything About
+                <span class="gradient-text">Anime</span>
+                Instantly ⚡
             </h1>
             <p class="hero-subtitle animate-fade-in-up delay-1">
-                Ask anything about anime — from episode details to deep storyline analysis.
-                AnimeSense AI understands your questions and delivers instant, expert-level answers.
+                Get accurate anime info, recommendations, and insights powered by AI.
             </p>
             <div class="hero-actions animate-fade-in-up delay-2">
-                <a href="chat.html" class="btn btn-primary btn-lg">
-                    <i class="fas fa-robot"></i>
-                    <span>Ask AI Assistant</span>
-                </a>
-                <a href="search.html" class="btn btn-glass btn-lg">
-                    <i class="fas fa-search"></i>
-                    <span>Explore Anime</span>
+                <a href="chat.html" class="btn btn-primary btn-lg btn-glow">
+                    <span>Try Anime AI Now</span>
+                    <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
             <div class="hero-stats animate-fade-in-up delay-3">
                 <div class="stat">
-                    <span class="stat-number" data-count="50000">0</span><span class="stat-suffix">+</span>
-                    <span class="stat-label">Anime Titles</span>
+                    <div class="stat-icon"><i class="fas fa-bolt text-warning"></i></div>
+                    <span class="stat-label">Instant answers</span>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat">
-                    <span class="stat-number" data-count="100">0</span><span class="stat-suffix">K+</span>
-                    <span class="stat-label">Episodes Indexed</span>
+                    <div class="stat-icon"><i class="fas fa-star text-primary"></i></div>
+                    <span class="stat-label">Smart recommendations</span>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat">
-                    <span class="stat-number" data-count="99">0</span><span class="stat-suffix">%</span>
-                    <span class="stat-label">Accuracy</span>
+                    <div class="stat-icon"><i class="fas fa-database text-success"></i></div>
+                    <span class="stat-label">Real anime data</span>
                 </div>
             </div>
         </div>
@@ -144,6 +139,36 @@
                                 aimed to...</span>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof Section -->
+    <section class="social-proof" id="social-proof">
+        <div class="section-container">
+            <div class="section-header animate-on-scroll center-text">
+                <h2 class="section-title">Loved by <span class="gradient-text">Anime Fans</span></h2>
+            </div>
+            <div class="social-stats-bar animate-on-scroll">
+                <div class="social-badge"><i class="fas fa-check-circle text-success"></i> 1000+ queries answered</div>
+                <div class="social-badge"><i class="fas fa-bolt text-warning"></i> Fast AI responses</div>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card animate-on-scroll" data-delay="0">
+                    <div class="testimonial-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p>"This AI is incredible! It accurately remembered the most obscure anime details I asked about. Way better than searching wikis."</p>
+                    <div class="testimonial-author">- Kenji T.</div>
+                </div>
+                <div class="testimonial-card animate-on-scroll" data-delay="100">
+                    <div class="testimonial-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p>"The power scaling arena is so fun. It actually gave a well-reasoned argument for Goku vs Saitama with proper facts."</p>
+                    <div class="testimonial-author">- Sarah M.</div>
+                </div>
+                <div class="testimonial-card animate-on-scroll" data-delay="200">
+                    <div class="testimonial-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p>"Found my new favorite shows through the smart recommendations. Highly recommend to any anime fan."</p>
+                    <div class="testimonial-author">- Alex R.</div>
                 </div>
             </div>
         </div>
@@ -271,24 +296,22 @@
                 <div class="step-card animate-on-scroll" data-delay="0">
                     <div class="step-number">01</div>
                     <div class="step-icon"><i class="fas fa-comment-dots"></i></div>
-                    <h3>Ask Your Question</h3>
-                    <p>Type any anime-related question — from simple facts to deep storyline analysis.</p>
+                    <h3>Ask Question</h3>
+                    <p>Type any anime-related query.</p>
                 </div>
                 <div class="step-connector animate-on-scroll"><i class="fas fa-chevron-right"></i></div>
                 <div class="step-card animate-on-scroll" data-delay="200">
                     <div class="step-number">02</div>
                     <div class="step-icon"><i class="fas fa-microchip"></i></div>
                     <h3>AI Processes</h3>
-                    <p>Our AI cross-references anime databases and applies intelligent reasoning to craft your answer.
-                    </p>
+                    <p>AI crosses real databases to find the truth.</p>
                 </div>
                 <div class="step-connector animate-on-scroll"><i class="fas fa-chevron-right"></i></div>
                 <div class="step-card animate-on-scroll" data-delay="400">
                     <div class="step-number">03</div>
-                    <div class="step-icon"><i class="fas fa-sparkles"></i></div>
-                    <h3>Get Expert Answers</h3>
-                    <p>Receive structured, accurate, and detailed responses instantly — like talking to an anime expert.
-                    </p>
+                    <div class="step-icon"><i class="fas fa-star"></i></div>
+                    <h3>Expert Answers</h3>
+                    <p>Receive fast, accurate, detailed responses.</p>
                 </div>
             </div>
         </div>
@@ -365,9 +388,9 @@
                 <p>Join thousands of anime fans using AnimeSense AI to discover, track, and understand their favorite
                     anime.</p>
                 <div class="cta-actions">
-                    <a href="chat.html" class="btn btn-primary btn-lg">
-                        <i class="fas fa-rocket"></i>
-                        <span>Start Using AnimeSense AI</span>
+                    <a href="chat.html" class="btn btn-primary btn-lg btn-glow">
+                        <span>Try Anime AI Now</span>
+                        <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
@@ -387,16 +410,18 @@
                         every anime fan.</p>
                 </div>
                 <div class="footer-links">
-                    <h4>Product</h4>
-                    <a href="chat.html">AI Chat</a>
-                    <a href="search.html">Anime Search</a>
-                    <a href="watchlist.html">Watchlist</a>
+                    <h4>AnimeSense</h4>
+                    <a href="#">About Us</a>
+                    <a href="#">Contact / Email</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
                 </div>
                 <div class="footer-links">
                     <h4>Features</h4>
-                    <a href="chat.html">Episode Summaries</a>
+                    <a href="chat.html">AI Chat</a>
                     <a href="chat.html">Recommendations</a>
-                    <a href="chat.html">Deep Analysis</a>
+                    <a href="search.html">Anime Search</a>
+                    <a href="watchlist.html">Watchlist</a>
                 </div>
                 <div class="footer-links">
                     <h4>Connect</h4>

@@ -202,7 +202,7 @@ function setupInputHandlers() {
     const autocompleteContainer = document.createElement('div');
     autocompleteContainer.id = 'autocompleteSuggestions';
     autocompleteContainer.className = 'autocomplete-container';
-    autocompleteContainer.style.cssText = 'display:none; position:absolute; bottom:100%; left:0; right:0; background:var(--bg-secondary); border:1px solid var(--border-light); border-radius:12px; margin-bottom:8px; overflow:hidden; z-index:10; box-shadow: 0 10px 30px rgba(0,0,0,0.5);';
+    autocompleteContainer.style.cssText = 'display:none; position:absolute; bottom:100%; left:0; right:0; background:var(--bg-secondary); border:1px solid var(--border-light); border-radius:12px; margin-bottom:8px; max-height: 250px; overflow-y: auto; overflow-x: hidden; z-index:10; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overscroll-behavior: contain;';
     chatInput.parentElement.style.position = 'relative';
     chatInput.parentElement.appendChild(autocompleteContainer);
 
@@ -1528,7 +1528,7 @@ function showLoading() {
 }
 
 function removeLoading(id) { const el = document.getElementById(id); if (el) el.remove(); }
-function scrollToBottom() { chatMessages.scrollTop = chatMessages.scrollHeight; }
+function scrollToBottom() { chatMessages.scrollTo({ top: chatMessages.scrollHeight, left: 0, behavior: 'smooth' }); }
 
 function copyMessage(btn) {
     const text = btn.closest('.message-content').querySelector('.message-text').textContent;

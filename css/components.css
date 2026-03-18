@@ -17,6 +17,7 @@
     white-space: nowrap;
     position: relative;
     overflow: hidden;
+    min-height: 40px; /* Touch-friendly size */
 }
 
 .btn-primary {
@@ -470,6 +471,9 @@
     background: var(--surface-1);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .tab {
@@ -525,6 +529,7 @@
     margin-bottom: var(--space-2);
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -574,4 +579,29 @@
     border-color: #ef4444;
     color: #ef4444;
     background: rgba(239, 68, 68, 0.1);
+}
+
+/* --- Component Responsive Tweaks --- */
+@media (max-width: 768px) {
+    .modal {
+        padding: var(--space-4);
+        margin: var(--space-4);
+    }
+    
+    .toast-container {
+        top: auto;
+        bottom: var(--space-4);
+        left: var(--space-4);
+        right: var(--space-4);
+        align-items: stretch;
+    }
+    
+    .toast {
+        min-width: 0;
+        width: 100%;
+    }
+    
+    .btn {
+        padding: var(--space-3) var(--space-5);
+    }
 }

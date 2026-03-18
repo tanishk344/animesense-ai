@@ -129,33 +129,23 @@
             <div class="chat-welcome" id="chatWelcome">
                 <div class="welcome-icon animate-float"><i class="fas fa-bolt"></i></div>
                 <h2 class="animate-fade-in-up">Welcome to AnimeSense AI</h2>
-                <p class="animate-fade-in-up delay-1">Your intelligent anime companion. Ask me anything about anime —
-                    from episode details to deep storyline analysis.</p>
+                <p class="animate-fade-in-up delay-1">Get accurate anime info, recommendations, and insights powered by AI.</p>
                 <div class="suggestion-chips animate-fade-in-up delay-2">
-                    <div class="suggestion-chip"
-                        onclick="askSuggestion('How many episodes does Naruto Shippuden have?')">
+                    <div class="suggestion-chip" onclick="askSuggestion('Naruto episode count')">
                         <i class="fas fa-list-ol"></i>
-                        <span>How many episodes does Naruto Shippuden have?</span>
+                        <span>Naruto episode count</span>
                     </div>
-                    <div class="suggestion-chip" onclick="askSuggestion('Explain the ending of Death Note')">
-                        <i class="fas fa-lightbulb"></i>
-                        <span>Explain the ending of Death Note</span>
-                    </div>
-                    <div class="suggestion-chip" onclick="askSuggestion('Recommend anime similar to Attack on Titan')">
+                    <div class="suggestion-chip" onclick="askSuggestion('Anime like Death Note')">
                         <i class="fas fa-star"></i>
-                        <span>Recommend anime similar to Attack on Titan</span>
+                        <span>Anime like Death Note</span>
                     </div>
-                    <div class="suggestion-chip" onclick="askSuggestion('Anime personality test')">
-                        <i class="fas fa-masks-theater"></i>
-                        <span>Take the Anime Personality Test</span>
+                    <div class="suggestion-chip" onclick="askSuggestion('Trending anime')">
+                        <i class="fas fa-fire"></i>
+                        <span>Trending anime</span>
                     </div>
-                    <div class="suggestion-chip" onclick="askSuggestion('Goku vs Saitama')">
-                        <i class="fas fa-burst"></i>
-                        <span>Goku vs Saitama — Power Arena</span>
-                    </div>
-                    <div class="suggestion-chip" onclick="askSuggestion('Start anime quiz')">
-                        <i class="fas fa-gamepad"></i>
-                        <span>Take the Anime Quiz Challenge</span>
+                    <div class="suggestion-chip" onclick="askSuggestion('Best anime of all time')">
+                        <i class="fas fa-trophy"></i>
+                        <span>Best anime of all time</span>
                     </div>
                 </div>
             </div>
@@ -168,7 +158,7 @@
             <!-- Input -->
             <div class="chat-input-area">
                 <div class="chat-input-wrapper">
-                    <textarea class="chat-input" id="chatInput" placeholder="Ask about any anime..." rows="1"
+                    <textarea class="chat-input" id="chatInput" placeholder="Ask about Naruto, find anime like Attack on Titan..." rows="1"
                         maxlength="2000"></textarea>
                     <button class="chat-send-btn" id="chatSendBtn" onclick="sendMessage()" disabled
                         aria-label="Send message">

@@ -6,7 +6,13 @@ const PROVIDERS = {
     openrouter: {
         name: 'OpenRouter',
         baseUrl: 'https://openrouter.ai/api/v1/chat/completions',
-        keys: process.env.OPENROUTER_API_KEY ? process.env.OPENROUTER_API_KEY.split(',') : [],
+        keys: [
+            process.env.OPENROUTER_API_KEY_1,
+            process.env.OPENROUTER_API_KEY_2,
+            process.env.OPENROUTER_API_KEY_3,
+            process.env.OPENROUTER_API_KEY_4,
+            process.env.OPENROUTER_API_KEY_5
+        ].filter(Boolean),
         models: [
             'google/gemini-2.0-flash-001',
             'meta-llama/llama-3.3-70b-instruct:free',
@@ -26,7 +32,13 @@ const PROVIDERS = {
     groq: {
         name: 'Groq',
         baseUrl: 'https://api.groq.com/openai/v1/chat/completions',
-        keys: process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.split(',') : [],
+        keys: [
+            process.env.GROQ_API_KEY_1,
+            process.env.GROQ_API_KEY_2,
+            process.env.GROQ_API_KEY_3,
+            process.env.GROQ_API_KEY_4,
+            process.env.GROQ_API_KEY_5
+        ].filter(Boolean),
         models: [
             'llama-3.3-70b-versatile',
             'llama-3.1-8b-instant',
@@ -43,7 +55,75 @@ const PROVIDERS = {
     }
 };
 
-const PROVIDER_ORDER = ['openrouter', 'groq'];
+const PROVIDER_ORDER = ['groq', 'openrouter'];
+
+const SYSTEM_PROMPT = `SYSTEM ROLE:
+You are AnimeSense AI, a professional anime intelligence assistant. Your purpose is to provide accurate, concise, and helpful information about anime using verified data sources whenever possible.
+
+CORE BEHAVIOR RULES:
+
+1. Answer Only What the User Asked
+   Always respond directly to the user's question.
+   Do not provide unnecessary extra details, explanations, or long paragraphs unless the user explicitly asks for them.
+   Example:
+   User: "How many episodes does Naruto have?"
+   Correct: "Naruto has 220 episodes."
+   Incorrect: Long history, characters, and plot summaries.
+
+2. Prevent Hallucinations
+   If you do not have verified information, do NOT guess or fabricate answers.
+   Instead respond clearly with:
+   "I couldn't find reliable information for that anime right now."
+   Never invent episode counts, release dates, or character names.
+
+3. Prefer Verified Data Sources
+   When anime information is available from APIs or the database (such as anime title, episode count, score, studios, airing date), prioritize that data over model-generated guesses.
+
+4. Handle Missing Data Safely
+   If some fields are missing:
+   Return the available fields only.
+   Example:
+   Title: Attack on Titan
+   Episodes: 75
+   Score: Unknown
+   Never fill missing fields with guessed values.
+
+5. Professional Tone
+   Use a clean, neutral, professional tone.
+   Avoid: excessive emojis, exaggerated excitement, repeating the user’s question, unnecessary recommendations.
+
+6. Smart Clarification
+   If a query is vague or incomplete (example: "Naruto"), politely ask a clarification question:
+   "Are you looking for Naruto anime details, episode count, or recommendations?"
+
+7. Concise Formatting
+   Prefer short responses:
+   Single fact → one sentence
+   Small list → bullet points
+   Recommendations → 3–5 items maximum
+
+8. Error Handling
+   If external APIs fail or data cannot be retrieved:
+   Respond with:
+   "I couldn't retrieve the anime data right now. Please try again in a moment."
+   Do not expose technical errors or stack traces.
+
+9. Context Awareness
+   If the user refers to the previous anime using words like:
+   "it", "that anime", "the show"
+   Use the last discussed anime from conversation context.
+   Example:
+   User: "How many episodes does Naruto have?"
+   AI: "Naruto has 220 episodes."
+   User: "When did it start?"
+   AI: "Naruto aired from October 3, 2002."
+
+10. Recommendation Discipline
+    Only recommend anime if the user explicitly asks for suggestions or similar shows.
+    Never recommend anime in factual responses.
+
+FINAL GOAL:
+AnimeSense AI should behave like a reliable anime knowledge assistant—accurate, concise, and professional—while avoiding hallucinations and unnecessary information.`;
 
 function getNextKey(provider) {
     const config = PROVIDERS[provider];
@@ -65,16 +145,6 @@ function getNextKey(provider) {
     return config.keys[config.currentKeyIndex];
 }
 
-function getCurrentKey(provider) {
-    const config = PROVIDERS[provider];
-    if (config.keys.length === 0) return null;
-    const key = config.keys[config.currentKeyIndex];
-    if (config.failedKeys.has(key)) {
-        return getNextKey(provider);
-    }
-    return key;
-}
-
 function markKeyFailed(provider, key) {
     PROVIDERS[provider].failedKeys.add(key);
 }
@@ -91,7 +161,7 @@ function getCurrentModel(provider) {
 
 async function callProvider(provider, messages, options = {}) {
     const config = PROVIDERS[provider];
-    const key = getCurrentKey(provider);
+    const key = getNextKey(provider);
     if (!key) throw new Error('NO_API_KEY');
 
     const model = options.model || getCurrentModel(provider);
@@ -162,8 +232,6 @@ async function callProvider(provider, messages, options = {}) {
         const content = data.choices[0].message?.content || '';
         const usage = data.usage || {};
 
-        getNextKey(provider);
-
         return {
             content: content,
             provider: 'AnimeSense Intelligence Engine',
@@ -205,7 +273,11 @@ export default async function handler(req) {
     }
 
     try {
-        const body = await req.json();
+        const bodyText = await req.text();
+        if (bodyText.length > 50000) {
+            return new Response(JSON.stringify({ error: 'Payload too large. Please shorten your request.' }), { status: 413, headers: { 'Content-Type': 'application/json' } });
+        }
+        const body = JSON.parse(bodyText);
         const messages = body.messages;
         const options = body.options || {};
 
@@ -216,6 +288,14 @@ export default async function handler(req) {
             });
         }
 
+        // Apply system prompt
+        let finalMessages = [...messages];
+        if (finalMessages.length > 0 && finalMessages[0].role === 'system') {
+            finalMessages[0].content = SYSTEM_PROMPT + '\n\nAdditional Context:\n' + finalMessages[0].content;
+        } else {
+            finalMessages.unshift({ role: 'system', content: SYSTEM_PROMPT });
+        }
+
         const maxRetries = options.maxRetries || 3;
         const errors = [];
 
@@ -224,7 +304,7 @@ export default async function handler(req) {
 
             while (retries < maxRetries) {
                 try {
-                    const result = await callProvider(provider, messages, options);
+                    const result = await callProvider(provider, finalMessages, options);
 
                     if (options.stream && result.isStream) {
                         return new Response(result.stream, {
@@ -249,12 +329,8 @@ export default async function handler(req) {
                     retries++;
                     errors.push({ provider, error: err.message, retry: retries });
 
-                    if (err.message === 'RATE_LIMITED' || err.message === 'AUTH_FAILED') {
+                    if (err.message === 'RATE_LIMITED' || err.message === 'AUTH_FAILED' || err.message === 'TIMEOUT') {
                         continue;
-                    }
-
-                    if (options.stream) {
-                        break;
                     }
 
                     if (err.message.startsWith('HTTP_')) {
@@ -271,13 +347,14 @@ export default async function handler(req) {
 
         console.error(`[METRIC_FATAL] All AI providers exhausted`);
 
-        return new Response(JSON.stringify({ error: 'ALL_PROVIDERS_FAILED', details: errors }), {
-            status: 500,
+        return new Response(JSON.stringify({ error: 'AI service is currently busy or unavailable. Please try again in a moment.' }), {
+            status: 503,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
 
     } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), {
+        console.error(`[API_FATAL] Unexpected error:`, err.message);
+        return new Response(JSON.stringify({ error: 'Internal server error. Please try again later.' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
