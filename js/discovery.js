@@ -71,6 +71,24 @@ const DiscoveryFeed = (() => {
     }
 
     // ── Data Fetchers ──
+    async function fetchWithRetry(url, retries = 2) {
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            console.log("API RESPONSE:", data);
+            return data;
+        } catch (err) {
+            console.error("API ERROR:", err);
+            if (retries > 0) {
+                console.warn(`[API] Retrying ${url}... (${retries} retries left)`);
+                await sleep(RATE_DELAY * 2);
+                return fetchWithRetry(url, retries - 1);
+            }
+            throw err;
+        }
+    }
+
     async function fetchJSON(url) {
         try {
             if (typeof AnimeAPI !== 'undefined' && AnimeAPI._fetch) {
@@ -78,9 +96,7 @@ const DiscoveryFeed = (() => {
                 const res = await AnimeAPI._fetch(endpoint, true);
                 if (res) return res;
             }
-            const resp = await fetch(url);
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-            return await resp.json();
+            return await fetchWithRetry(url, 2);
         } catch (error) {
             console.error(`[API] Fetch Error for ${url}:`, error);
             // Return safe fallback so skeletons are cleared if the API triggers a rate limit or fails
@@ -89,34 +105,35 @@ const DiscoveryFeed = (() => {
     }
 
     async function fetchTrending() {
-        const data = await fetchJSON(`${JIKAN}/top/anime?filter=airing&limit=12`);
-        return data.data || [];
+        const data = await fetchJSON(`${JIKAN}/seasons/now?limit=12`);
+        return (data && data.data && data.data.length > 0) ? data.data : [];
     }
 
     async function fetchTopRated() {
         const data = await fetchJSON(`${JIKAN}/top/anime?limit=12`);
-        return data.data || [];
+        return (data && data.data && data.data.length > 0) ? data.data : [];
     }
 
     async function fetchHiddenGems() {
         // Fetch anime with high scores but lower popularity (rank > 500)
         const data = await fetchJSON(`${JIKAN}/top/anime?limit=25&filter=bypopularity&page=3`);
+        if (!data || !data.data || data.data.length === 0) return [];
         // Filter for high-quality hidden gems
-        const gems = (data.data || []).filter(a =>
+        const gems = data.data.filter(a =>
             a.score && a.score >= 7.5 &&
             a.popularity && a.popularity > 400
         ).slice(0, 12);
-        return gems.length >= 4 ? gems : (data.data || []).slice(0, 12);
+        return gems.length >= 4 ? gems : data.data.slice(0, 12);
     }
 
     async function fetchUpcoming() {
         const data = await fetchJSON(`${JIKAN}/seasons/upcoming?limit=12`);
-        return data.data || [];
+        return (data && data.data && data.data.length > 0) ? data.data : [];
     }
 
     async function fetchByGenre(genreId, genreName) {
         const data = await fetchJSON(`${JIKAN}/anime?genres=${genreId}&order_by=score&sort=desc&limit=12`);
-        return { name: genreName, data: data.data || [] };
+        return { name: genreName, data: (data && data.data && data.data.length > 0) ? data.data : [] };
     }
 
     // ── Scroll Controls ──
@@ -183,7 +200,12 @@ const DiscoveryFeed = (() => {
                 if (data && data.length > 0) {
                     el.innerHTML = data.map(createCardHTML).join('');
                 } else {
-                    el.innerHTML = '<div style="padding: 20px; color: var(--text-tertiary); text-align: center; width: 100%;">No data available right now. Please try again.</div>';
+                    el.innerHTML = `
+                        <div style="padding: 20px; color: var(--text-tertiary); text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px;">
+                            <p style="margin-bottom: 12px; font-size: 14px;">⚠️ Unable to load anime (API limit or network issue). Please try again.</p>
+                            <button onclick="location.reload()" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: white; padding: 6px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">Retry</button>
+                        </div>
+                    `;
                 }
             }
         });
