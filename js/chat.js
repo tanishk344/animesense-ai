@@ -311,7 +311,7 @@ async function sendMessage() {
     } catch (err) {
         removeLoading(loadingId);
         appendMessage('ai', 'Sorry, I encountered an error. Please try again.');
-        console.error('Response error:', err);
+        console.error("Failed to load data");
     }
     isProcessing = false; chatSendBtn.disabled = false; loadChatHistory(); scrollToBottom();
 }
@@ -323,6 +323,16 @@ async function sendMessage() {
 let lastDiscussedAnimeTitle = null;
 
 async function generateResponse(query) {
+    // ── Privacy & Branding Check ──
+    const safeQuery = query.toLowerCase();
+    if (safeQuery.includes('what model') || safeQuery.includes('which model') || 
+        safeQuery.includes('what api') || safeQuery.includes('which api') || 
+        safeQuery.includes('openai') || safeQuery.includes('groq') || 
+        safeQuery.includes('openrouter') || safeQuery.includes('jikan') || 
+        safeQuery.includes('llm')) {
+        return "This platform is powered by a proprietary AnimeSense AI system designed to deliver accurate anime insights.";
+    }
+
     // ── Intercept quiz answers (v10: support both AnimeQuiz and legacy quizState) ──
     if ((typeof AnimeQuiz !== 'undefined' && AnimeQuiz.isActive()) && /^[a-d]$/i.test(query.trim())) {
         const result = AnimeQuiz.checkAnswer(query.trim());
@@ -483,7 +493,7 @@ async function generateResponse(query) {
                 }
             }
         } catch (e) {
-            console.error('API error:', e);
+            console.error("Failed to load data");
             // 7. Error Recovery System
             const fallbackMsg = `Anime data service is temporarily unavailable. Here's what I know...`;
             try {
@@ -556,7 +566,7 @@ async function handleCharacterBattle(query, entities) {
 
         return response;
     } catch (e) {
-        console.error('Battle error:', e);
+        console.error("Failed to load data");
         return `## ⚔️ Battle\n\nCouldn't set up this battle. Try: **"Goku vs Saitama"** or **"Naruto vs Luffy"**`;
     }
 }
@@ -605,7 +615,7 @@ async function handleSeasonQuery(query, entities) {
         response += `\n\n> 📺 *Live data from AnimeSense Data System*`;
         return response;
     } catch (e) {
-        console.error('Season query error:', e);
+        console.error("Failed to load data");
         return `## ❓ Season Query\n\nCouldn't process that season query. Try: **"Dandadan season 2"** or **"Attack on Titan latest season"**`;
     }
 }
@@ -757,7 +767,7 @@ async function handleDescribeAnime(query) {
             return `## 🔍 Found: ${bestMatch.title}\n\n**This might be what you're looking for!**\n\n| Detail | Info |\n|---|---|\n| **Type** | ${bestMatch.type || '?'} |\n| **Episodes** | ${bestMatch.episodes || '?'} |\n| **Score** | ⭐ ${bestMatch.score || '?'}/10 |\n| **Genres** | ${g} |\n| **Studio** | ${s} |\n| **Year** | ${bestMatch.year || '?'} |\n\n${(bestMatch.synopsis || '').slice(0, 400)}\n\n> 🔍 *Identified by AnimeSense Knowledge System*`;
         }
     } catch (e) {
-        console.error('Describe anime error:', e);
+        console.error("Failed to load data");
         return `## 🔍 Anime Identification\n\nSomething went wrong. Try describing the anime differently!`;
     }
 }
@@ -834,7 +844,7 @@ async function handleQuizMode(query) {
 
         return response;
     } catch (e) {
-        console.error('Quiz error:', e);
+        console.error("Failed to load data");
         return `## 🎮 Quiz\n\nCouldn't generate a quiz right now. Try again!`;
     }
 }
@@ -958,7 +968,7 @@ async function handleLLMQuery(query, queryType, anime) {
 
         return responseText;
     } catch (e) {
-        console.error('LLM failed:', e);
+        console.error("Failed to load data");
         return await buildFullDetailResponse(anime, charData);
     }
 }
@@ -1071,7 +1081,7 @@ async function handleSmartRecommendation(query) {
             ? [...new Set(userMemory.genres)].slice(0, 5)
             : watchlist.flatMap(a => a.genres || []).slice(0, 5);
 
-        // Step 2: Find a seed anime for Jikan recommendations
+        // Step 2: Find a seed anime for AnimeSense recommendations
         let seedAnime = null;
         const recentTitle = allTitles[allTitles.length - 1];
         if (recentTitle) {
@@ -1122,7 +1132,7 @@ async function handleSmartRecommendation(query) {
             return `## 🎯 Personalized Recommendations\n\nBased on your taste for **${topGenres.join(', ')}**:\n\n${list}\n\n> 🧠 *Based on ${allTitles.length} searches*`;
         }
     } catch (e) {
-        console.error('Smart recommendation error:', e);
+        console.error("Failed to load data");
         return await handleRecommend(query);
     }
 }
@@ -1191,7 +1201,7 @@ async function handleComparison(query, nameA, nameB) {
 
         return response;
     } catch (e) {
-        console.error('Comparison error:', e);
+        console.error("Failed to load data");
         return `## ⚔️ Comparison\n\nCouldn't compare those anime right now. Try: **"Naruto vs One Piece"**`;
     }
 }

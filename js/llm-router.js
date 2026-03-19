@@ -15,7 +15,7 @@ const LLMRouter = (() => {
     async function chat(messages, options = {}) {
         const cacheKey = JSON.stringify(messages) + (options.model || '') + (options.temperature || '');
         if (promptCache.has(cacheKey)) {
-            console.log('[LLMRouter] Prompt cache hit');
+            console.log('Cache hit');
             return promptCache.get(cacheKey);
         }
 
@@ -37,14 +37,14 @@ const LLMRouter = (() => {
                 throw new Error(result.error);
             }
 
-            console.log(`[LLMRouter] Success via ${result.provider} (${result.model}) — ${result.tokens?.total || 0} tokens`);
+            console.log("Data loaded successfully");
 
             if (promptCache.size > 100) promptCache.clear();
             promptCache.set(cacheKey, result);
 
             return result;
         } catch (err) {
-            console.error('[LLMRouter] API Chat Error:', err);
+            console.error("Failed to load data");
             throw err;
         }
     }
@@ -95,7 +95,7 @@ const LLMRouter = (() => {
 
             return accumulatedContent;
         } catch (err) {
-            console.error('[LLMRouter] Stream API Error:', err);
+            console.error("Failed to load data");
             throw err;
         }
     }
@@ -115,7 +115,7 @@ CORE RULE 2: LENGTH CONTROLS
 - ANALYSIS QUESTIONS (e.g., "Explain Naruto's chakra system", "Why is Attack on Titan popular?"): Return a structured explanation with Markdown headings ONLY if the user uses words like "explain, describe, analysis, story, plot, why, how".
 
 CORE RULE 3: DATA & EXPERTISE
-- Avoid saying "I'm an AI" or mentioning Groq, OpenRouter, Jikan, or OpenAI. You are AnimeSense.
+- Avoid saying "I\'m an AI" or mentioning any third-party APIs. You are AnimeSense.
 - If asked an analysis question, provide deep insights, objectivity, and specific feats or references.
 
 CORE RULE 4: PROFESSIONAL UX BEHAVIOR (CRITICAL)

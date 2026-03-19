@@ -33,7 +33,7 @@ const FirebaseDB = (() => {
 
             return true;
         } catch (err) {
-            console.error('[FirebaseDB] Init error:', err);
+            console.error("Failed to load data");
             return false;
         }
     }
@@ -96,7 +96,7 @@ const FirebaseDB = (() => {
             console.log('[FirebaseDB] New user profile created');
             return profile;
         } catch (err) {
-            console.error('[FirebaseDB] Profile error:', err);
+            console.error("Failed to load data");
             return null;
         }
     }
@@ -124,7 +124,7 @@ const FirebaseDB = (() => {
             }
             return null;
         } catch (err) {
-            console.error('[FirebaseDB] Get profile error:', err);
+            console.error("Failed to load data");
             return null;
         }
     }
@@ -192,7 +192,7 @@ const FirebaseDB = (() => {
             console.log('[FirebaseDB] Added to watchlist:', entry.title);
             return { success: true, entry };
         } catch (err) {
-            console.error('[FirebaseDB] Watchlist add error:', err);
+            console.error("Failed to load data");
             return { success: false, error: err.message };
         }
     }
@@ -211,7 +211,7 @@ const FirebaseDB = (() => {
             if (_profileCache) _profileCache.watchlist = updated;
             return true;
         } catch (err) {
-            console.error('[FirebaseDB] Watchlist remove error:', err);
+            console.error("Failed to load data");
             return false;
         }
     }
@@ -221,7 +221,7 @@ const FirebaseDB = (() => {
             const profile = await getUserProfile();
             return (profile && profile.watchlist) ? profile.watchlist : [];
         } catch (err) {
-            console.error('[FirebaseDB] Get watchlist error:', err);
+            console.error("Failed to load data");
             return [];
         }
     }
@@ -275,7 +275,7 @@ const FirebaseDB = (() => {
             console.log('[FirebaseDB] Quiz score saved');
             return true;
         } catch (err) {
-            console.error('[FirebaseDB] Quiz score error:', err);
+            console.error("Failed to load data");
             return false;
         }
     }
@@ -331,7 +331,7 @@ const FirebaseDB = (() => {
             console.log('[FirebaseDB] Battle saved:', entry.fighter1, 'vs', entry.fighter2);
             return true;
         } catch (err) {
-            console.error('[FirebaseDB] Battle save error:', err);
+            console.error("Failed to load data");
             return false;
         }
     }
@@ -376,7 +376,7 @@ const FirebaseDB = (() => {
 
             return true;
         } catch (err) {
-            console.error('[FirebaseDB] Genre save error:', err);
+            console.error("Failed to load data");
             return false;
         }
     }
@@ -416,7 +416,7 @@ const FirebaseDB = (() => {
 
             return true;
         } catch (err) {
-            console.error('[FirebaseDB] Track anime error:', err);
+            console.error("Failed to load data");
             return false;
         }
     }
@@ -439,7 +439,7 @@ const FirebaseDB = (() => {
             console.log('[FirebaseDB] Personality result saved');
             return true;
         } catch (err) {
-            console.error('[FirebaseDB] Personality save error:', err);
+            console.error("Failed to load data");
             return false;
         }
     }
@@ -530,10 +530,10 @@ const FirebaseDB = (() => {
                 explanation = `Based on your favorite genres: ${topGenres.join(', ')}.`;
             }
 
-            // Fetch from Jikan based on a top genre if available
+            // Fetch from AnimeSense based on a top genre if available
             let recs = [];
             if (topGenres.length > 0) {
-                // Map string genre to typical Jikan ID. Let's do a loose matching or fallback to generic discovery
+                // Map string genre to typical API ID. Let's do a loose matching or fallback to generic discovery
                 const genreMap = { 'Action': 1, 'Adventure': 2, 'Comedy': 4, 'Fantasy': 10, 'Drama': 8, 'Sci-Fi': 24, 'Romance': 22 };
                 let gId = genreMap[topGenres[0]] || 1;
 
@@ -547,7 +547,7 @@ const FirebaseDB = (() => {
                 } catch (e) { }
             }
 
-            // If we don't have enough from Jikan, just use some trending
+            // If we don't have enough from AnimeSense, just use some trending
             if (recs.length < 5) {
                 try {
                     const resp2 = await fetch('https://api.jikan.moe/v4/top/anime?filter=bypopularity&limit=10');
@@ -570,7 +570,7 @@ const FirebaseDB = (() => {
                 recommendations: recs.slice(0, 5)
             };
         } catch (err) {
-            console.error('[FirebaseDB] Recommendation engine error:', err);
+            console.error("Failed to load data");
             return {
                 explanation: 'A great selection of popular anime:',
                 recommendations: []

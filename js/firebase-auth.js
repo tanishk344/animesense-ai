@@ -55,7 +55,7 @@ const FirebaseAuth = (() => {
             console.log('[FirebaseAuth] Initialized successfully');
             return true;
         } catch (err) {
-            console.error('[FirebaseAuth] Init error:', err);
+            console.error("Failed to load data");
             return false;
         }
     }

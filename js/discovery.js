@@ -2,8 +2,8 @@
 /* Loads on index.html — Trending, Top Rated, Hidden Gems, Upcoming & Genre Highlights */
 
 const DiscoveryFeed = (() => {
-    const JIKAN = 'https://api.jikan.moe/v4';
-    const RATE_DELAY = 400; // ms between Jikan calls (rate limit)
+    const API_BASE = 'https://api.jikan.moe/v4';
+    const RATE_DELAY = 400; // ms between API calls (rate limit)
 
     // ── Helpers ──
     const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -87,10 +87,10 @@ const DiscoveryFeed = (() => {
             const res = await fetch(url);
             const data = await res.json();
             
-            console.log("API RESPONSE:", data);
+            console.log("Data loaded successfully");
             return data;
         } catch (err) {
-            console.error("API ERROR:", err);
+            console.error("Failed to load data");
             
             if (retries > 0) {
                 console.log(`Retrying... (${retries} left)`);
@@ -120,17 +120,17 @@ const DiscoveryFeed = (() => {
     }
 
     async function fetchTrending() {
-        const data = await getAnimeData(`${JIKAN}/seasons/now?limit=12`, 'cache_trending');
+        const data = await getAnimeData(`${API_BASE}/seasons/now?limit=12`, 'cache_trending');
         return (data && data.data && data.data.length > 0) ? data.data : [];
     }
 
     async function fetchTopRated() {
-        const data = await getAnimeData(`${JIKAN}/top/anime?limit=12`, 'cache_topRated');
+        const data = await getAnimeData(`${API_BASE}/top/anime?limit=12`, 'cache_topRated');
         return (data && data.data && data.data.length > 0) ? data.data : [];
     }
 
     async function fetchHiddenGems() {
-        const data = await getAnimeData(`${JIKAN}/top/anime?limit=25&filter=bypopularity&page=3`, 'cache_hiddenGems');
+        const data = await getAnimeData(`${API_BASE}/top/anime?limit=25&filter=bypopularity&page=3`, 'cache_hiddenGems');
         if (!data || !data.data || data.data.length === 0) return [];
         const gems = data.data.filter(a =>
             a.score && a.score >= 7.5 &&
@@ -140,12 +140,12 @@ const DiscoveryFeed = (() => {
     }
 
     async function fetchUpcoming() {
-        const data = await getAnimeData(`${JIKAN}/seasons/upcoming?limit=12`, 'cache_upcoming');
+        const data = await getAnimeData(`${API_BASE}/seasons/upcoming?limit=12`, 'cache_upcoming');
         return (data && data.data && data.data.length > 0) ? data.data : [];
     }
 
     async function fetchByGenre(genreId, genreName) {
-        const data = await getAnimeData(`${JIKAN}/anime?genres=${genreId}&order_by=score&sort=desc&limit=12`, `cache_genre_${genreId}`);
+        const data = await getAnimeData(`${API_BASE}/anime?genres=${genreId}&order_by=score&sort=desc&limit=12`, `cache_genre_${genreId}`);
         return { name: genreName, data: (data && data.data && data.data.length > 0) ? data.data : [] };
     }
 

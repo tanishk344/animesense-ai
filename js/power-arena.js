@@ -2,7 +2,7 @@
    AnimeSense AI v10 — Power Scaling Arena
    ═══════════════════════════════════════════════════════════════════
    Advanced battle analysis system. Detects fighter queries,
-   fetches data from Jikan + Knowledge Base, generates structured
+   fetches data from AnimeSense + Knowledge Base, generates structured
    battle breakdowns with power scaling, abilities, combat style,
    universe rules, weaknesses, and final verdict.
    ═══════════════════════════════════════════════════════════════════ */
@@ -207,7 +207,7 @@ Be analytical, reference specific feats, and give a definitive winner.`;
 
             return response;
         } catch (err) {
-            console.error('[PowerArena] Battle error:', err);
+            console.error("Failed to load data");
             return `## ⚔️ Battle Error\n\nCouldn't set up this battle. Try:\n- **"Goku vs Saitama"**\n- **"Gojo vs Sukuna"**\n- **"Naruto vs Ichigo"**`;
         }
     }

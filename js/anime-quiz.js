@@ -2,7 +2,7 @@
    AnimeSense AI v10 — Anime Quiz Mode (Enhanced)
    ═══════════════════════════════════════════════════════════════════
    Interactive quiz with multiple question types, difficulty levels,
-   streak tracking, and session scoring. Fetches from Jikan API
+   streak tracking, and session scoring. Fetches from AnimeSense Intelligence Engine
    and Knowledge Base.
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -65,7 +65,7 @@ const AnimeQuiz = (() => {
 
             return { error: false, message: formatQuizQuestion(question, state) };
         } catch (err) {
-            console.error('[AnimeQuiz] Error:', err);
+            console.error("Failed to load data");
             return { error: true, message: "Couldn't generate a quiz right now. Try again!" };
         }
     }

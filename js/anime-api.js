@@ -1,4 +1,4 @@
-/* AnimeSense AI — Anime API Service (Jikan v4) */
+/* AnimeSense AI — Anime API Service (v4) */
 
 const AnimeAPI = {
     BASE_URL: 'https://api.jikan.moe/v4',
@@ -11,7 +11,7 @@ const AnimeAPI = {
     RATE_LIMIT: 400, // Safe delay between requests
 
     async _fetch(endpoint, useSessionCache = false) {
-        const cacheKey = `jikan_${endpoint}`;
+        const cacheKey = `as_api_${endpoint}`;
         const CACHE_TIME = 60 * 60 * 1000; // 1 hour cache
 
         // 1. Check local memory cache
@@ -77,7 +77,7 @@ const AnimeAPI = {
 
                 task.resolve(data);
             } catch (err) {
-                console.error('AnimeAPI Error:', err);
+                console.error("Failed to load data");
                 task.reject(err);
             }
         }
@@ -185,7 +185,7 @@ const AnimeAPI = {
             return { data: [cachedItem] };
         }
 
-        console.log(`[Cache Miss] Falling back to remote API for: ${query}`);
+        console.log(`[Cache Miss] Fetching data: ${query}`);
         const encodedQ = encodeURIComponent(query);
         const result = await this._fetch(`/anime?q=${encodedQ}&page=${page}&limit=${limit}&sfw=true`, true); // use sessionStorage
 

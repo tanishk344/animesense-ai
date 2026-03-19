@@ -442,7 +442,7 @@ const EntityDetector = (() => {
 
             return best;
         } catch (e) {
-            console.error('[EntityDetector] Validation fetch failed:', e);
+            console.error("Failed to load data");
             return null;
         }
     }
@@ -500,7 +500,7 @@ const EntityDetector = (() => {
                 return { anime: base.data[0], found: false, message: `Season ${seasonNum || 'requested'} has not been officially announced yet.` };
             }
         } catch (e) {
-            console.error('[EntityDetector] Season resolution failed:', e);
+            console.error("Failed to load data");
         }
         return null;
     }
