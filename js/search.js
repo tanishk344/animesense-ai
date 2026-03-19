@@ -108,7 +108,7 @@ function createAnimeCard(anime) {
     return `
     <div class="anime-card" onclick="openAnimeDetail(${anime.mal_id})">
         <div style="position:relative">
-            <img class="anime-card-image" src="${img}" alt="${escapeHtml(anime.title)}" loading="lazy" onerror="this.style.background='var(--surface-2)'">
+            <img class="anime-card-image" src="${img}" alt="${escapeHtml(anime.title)}" loading="lazy" onerror="this.src='fallback.jpg'">
             <div style="position:absolute;top:var(--space-3);right:var(--space-3)">
                 <div class="score-circle ${scoreClass}">${score}</div>
             </div>
@@ -158,7 +158,7 @@ async function openAnimeDetail(malId) {
                     const va = c.voice_actors?.find(v => v.language === 'Japanese');
                     return `
                         <div class="character-card">
-                            <img class="character-avatar" src="${charImg}" alt="${escapeHtml(c.character.name)}" loading="lazy" onerror="this.style.background='var(--surface-2)'">
+                            <img class="character-avatar" src="${charImg}" alt="${escapeHtml(c.character.name)}" loading="lazy" onerror="this.src='fallback.jpg'">
                             <div class="character-info">
                                 <div class="character-name">${escapeHtml(c.character.name)}</div>
                                 <div class="character-role">${c.role}</div>
@@ -176,7 +176,7 @@ async function openAnimeDetail(malId) {
                     const charImg = c.character?.images?.jpg?.image_url || '';
                     return `
                         <div class="character-card character-card-small">
-                            <img class="character-avatar character-avatar-small" src="${charImg}" alt="${escapeHtml(c.character.name)}" loading="lazy" onerror="this.style.background='var(--surface-2)'">
+                            <img class="character-avatar character-avatar-small" src="${charImg}" alt="${escapeHtml(c.character.name)}" loading="lazy" onerror="this.src='fallback.jpg'">
                             <div class="character-info">
                                 <div class="character-name">${escapeHtml(c.character.name)}</div>
                                 <div class="character-role">${c.role}</div>

@@ -22,7 +22,7 @@ const DiscoveryFeed = (() => {
         return `
             <div class="discovery-card" onclick="window.location.href='chat.html?q=Tell+me+about+${encodeURIComponent(title)}'" title="${title}">
                 <div class="discovery-card-img-wrap">
-                    <img class="discovery-card-img" src="${img}" alt="${title}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 220 300%22><rect fill=%22%231a1a2e%22 width=%22220%22 height=%22300%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23555%22 font-size=%2214%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>No Image</text></svg>'">
+                    <img class="discovery-card-img" src="${img}" alt="${title}" loading="lazy" onerror="this.src='fallback.jpg'">
                     <span class="discovery-card-score"><i class="fas fa-star"></i> ${score}</span>
                     <span class="discovery-card-type">${type}</span>
                     <div class="discovery-card-gradient"></div>
