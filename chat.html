@@ -34,16 +34,16 @@
 
     <nav class="navbar scrolled" id="navbar">
         <div class="nav-container">
-            <a href="index.html" class="nav-logo">
+            <a href="/index.html" class="nav-logo">
                 <div class="logo-icon"><i class="fas fa-bolt"></i></div>
                 <span class="logo-text">Anime<span class="logo-accent">Sense</span></span>
             </a>
             <div class="nav-links" id="navLinks">
-                <a href="index.html" class="nav-link">Home</a>
-                <a href="chat.html" class="nav-link active">AI Chat</a>
-                <a href="search.html" class="nav-link">Search</a>
-                <a href="watchlist.html" class="nav-link">Watchlist</a>
-                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="/index.html" class="nav-link">Home</a>
+                <a href="/chat.html" class="nav-link active">AI Chat</a>
+                <a href="/search.html" class="nav-link">Search</a>
+                <a href="/watchlist.html" class="nav-link">Watchlist</a>
+                <a href="/dashboard.html" class="nav-link">Dashboard</a>
             </div>
             <div class="nav-actions">
                 <!-- Auth: Login Button -->
@@ -53,10 +53,10 @@
                 </button>
                 <!-- Auth: User Section -->
                 <div class="auth-user-section" id="authUserSection">
-                    <a href="dashboard.html" class="auth-user-avatar" id="authUserAvatar" title="Dashboard"></a>
+                    <a href="/dashboard.html" class="auth-user-avatar" id="authUserAvatar" title="Dashboard"></a>
                     <span class="auth-user-name" id="authUserName"></span>
                     <button class="auth-logout-btn"
-                        onclick="FirebaseAuth.logoutUser().then(()=>location.href='index.html')">
+                        onclick="FirebaseAuth.logoutUser().then(()=>location.href='/index.html')">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </button>
                 </div>

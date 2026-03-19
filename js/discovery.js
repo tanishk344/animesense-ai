@@ -182,8 +182,8 @@ const DiscoveryFeed = (() => {
 
             container.innerHTML =
                 buildSection('recommended', 'magic', 'purple', 'Recommended For You', 'Refresh recommendations', 'javascript:DiscoveryFeed.refreshRecommendations()') +
-                buildSection('trending', 'fire', 'fire', 'Trending Now', 'Browse all trending', 'search.html') +
-                buildSection('top-rated', 'trophy', 'trophy', 'Top Rated of All Time', 'See full rankings', 'search.html') +
+                buildSection('trending', 'fire', 'fire', 'Trending Now', 'Browse all trending', '/search.html') +
+                buildSection('top-rated', 'trophy', 'trophy', 'Top Rated of All Time', 'See full rankings', '/search.html') +
                 buildSection('hidden-gems', 'gem', 'gem', 'Hidden Gems', 'Discover more gems', 'chat.html?q=Recommend+underrated+anime') +
                 buildSection('upcoming', 'calendar-alt', 'calendar', 'Upcoming Anime', 'See all upcoming', 'chat.html?q=What+anime+is+upcoming') +
                 buildSection('genre', 'star', 'star', `${genrePick.name} Highlights`, `More ${genrePick.name} anime`, `chat.html?q=Recommend+${encodeURIComponent(genrePick.name)}+anime`);
