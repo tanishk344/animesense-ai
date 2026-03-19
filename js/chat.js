@@ -1515,7 +1515,15 @@ function appendMessage(role, content, animate = true) {
     const div = document.createElement('div');
     div.className = `message ${role} ${animate ? 'msg-type-in' : ''}`;
     div.innerHTML = `<div class="message-avatar">${role === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-bolt"></i>'}</div><div class="message-content"><div class="message-sender">${role === 'user' ? 'You' : 'AnimeSense AI'}</div><div class="message-text">${formatMarkdown(content)}</div>${role === 'ai' ? '<div class="message-actions"><button class="message-action-btn" onclick="copyMessage(this)" title="Copy"><i class="fas fa-copy"></i> Copy</button></div>' : ''}</div>`;
-    chatMessagesInner.appendChild(div); scrollToBottom();
+    chatMessagesInner.appendChild(div);
+    
+    const messages = document.querySelectorAll(".message");
+    if (messages.length > 0) {
+        const ws = document.querySelector(".welcome-screen");
+        if (ws) ws.style.display = "none";
+    }
+    
+    scrollToBottom();
 }
 
 function showLoading() {
