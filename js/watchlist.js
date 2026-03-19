@@ -55,7 +55,7 @@ function createWatchlistCard(anime) {
 
     return `
     <div class="wl-card">
-        <img class="wl-card-poster" src="${anime.image}" alt="${escapeHtml(anime.title)}" loading="lazy" onerror="this.src='fallback.jpg'">
+        <img class="wl-card-poster" src="${anime.image}" alt="${escapeHtml(anime.title)}" loading="lazy" onerror="this.src='/fallback.jpg'">
         <div class="wl-card-gradient"></div>
         <div class="wl-card-info">
             <div class="wl-card-title" title="${escapeHtml(anime.title)}">${escapeHtml(anime.title)}</div>

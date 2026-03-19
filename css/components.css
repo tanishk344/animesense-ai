@@ -384,13 +384,26 @@
 }
 
 /* --- Empty State --- */
+/* --- Empty State --- */
 .empty-state {
+    text-align: center;
+    padding: 20px;
+    color: #ccc;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: var(--space-16) var(--space-6);
-    text-align: center;
+}
+
+.empty-state button {
+    margin-top: 10px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    min-height: 40px;
+    cursor: pointer;
 }
 
 .empty-state-icon {
@@ -403,10 +416,11 @@
 .empty-state h3 {
     font-size: var(--fs-xl);
     margin-bottom: var(--space-3);
+    color: white;
 }
 
 .empty-state p {
-    color: var(--text-secondary);
+    color: #ccc;
     max-width: 400px;
     margin-bottom: var(--space-6);
 }

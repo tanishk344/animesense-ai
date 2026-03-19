@@ -22,7 +22,7 @@ const DiscoveryFeed = (() => {
         return `
             <div class="discovery-card" onclick="window.location.href='chat.html?q=Tell+me+about+${encodeURIComponent(title)}'" title="${title}">
                 <div class="discovery-card-img-wrap">
-                    <img class="discovery-card-img" src="${img}" alt="${title}" loading="lazy" onerror="this.src='fallback.jpg'">
+                    <img class="discovery-card-img" src="${img}" alt="${title}" loading="lazy" onerror="this.src='/fallback.jpg'">
                     <span class="discovery-card-score"><i class="fas fa-star"></i> ${score}</span>
                     <span class="discovery-card-type">${type}</span>
                     <div class="discovery-card-gradient"></div>
@@ -218,9 +218,9 @@ const DiscoveryFeed = (() => {
                     el.innerHTML = list.map(createCardHTML).join('');
                 } else {
                     el.innerHTML = `
-                        <div style="padding: 20px; color: var(--text-tertiary); text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px;">
-                            <p style="margin-bottom: 12px; font-size: 14px;">⚠️ Unable to load anime right now</p>
-                            <button onclick="location.reload()" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: white; padding: 6px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">Retry</button>
+                        <div class="empty-state">
+                          <p>⚠️ Anime data is temporarily unavailable</p>
+                          <button onclick="location.reload()">Retry</button>
                         </div>
                     `;
                 }
