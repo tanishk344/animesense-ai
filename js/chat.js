@@ -1528,7 +1528,10 @@ function showLoading() {
 }
 
 function removeLoading(id) { const el = document.getElementById(id); if (el) el.remove(); }
-function scrollToBottom() { chatMessages.scrollTo({ top: chatMessages.scrollHeight, left: 0, behavior: 'smooth' }); }
+function scrollToBottom() {
+    const el = document.querySelector(".chat-messages");
+    if (el) el.scrollTop = el.scrollHeight;
+}
 
 function copyMessage(btn) {
     const text = btn.closest('.message-content').querySelector('.message-text').textContent;
