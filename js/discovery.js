@@ -20,7 +20,7 @@ const DiscoveryFeed = (() => {
         const title = anime.title || 'Unknown';
 
         return `
-            <div class="discovery-card" onclick="window.location.href='chat.html?q=Tell+me+about+${encodeURIComponent(title)}'" title="${title}">
+            <div class="discovery-card" onclick="window.location.href='/chat.html?q=Tell+me+about+${encodeURIComponent(title)}'" title="${title}">
                 <div class="discovery-card-img-wrap">
                     <img class="discovery-card-img" src="${img}" alt="${title}" loading="lazy" onerror="this.src='/fallback.jpg'">
                     <span class="discovery-card-score"><i class="fas fa-star"></i> ${score}</span>
@@ -184,9 +184,9 @@ const DiscoveryFeed = (() => {
                 buildSection('recommended', 'magic', 'purple', 'Recommended For You', 'Refresh recommendations', 'javascript:DiscoveryFeed.refreshRecommendations()') +
                 buildSection('trending', 'fire', 'fire', 'Trending Now', 'Browse all trending', '/search.html') +
                 buildSection('top-rated', 'trophy', 'trophy', 'Top Rated of All Time', 'See full rankings', '/search.html') +
-                buildSection('hidden-gems', 'gem', 'gem', 'Hidden Gems', 'Discover more gems', 'chat.html?q=Recommend+underrated+anime') +
-                buildSection('upcoming', 'calendar-alt', 'calendar', 'Upcoming Anime', 'See all upcoming', 'chat.html?q=What+anime+is+upcoming') +
-                buildSection('genre', 'star', 'star', `${genrePick.name} Highlights`, `More ${genrePick.name} anime`, `chat.html?q=Recommend+${encodeURIComponent(genrePick.name)}+anime`);
+                buildSection('hidden-gems', 'gem', 'gem', 'Hidden Gems', 'Discover more gems', '/chat.html?q=Recommend+underrated+anime') +
+                buildSection('upcoming', 'calendar-alt', 'calendar', 'Upcoming Anime', 'See all upcoming', '/chat.html?q=What+anime+is+upcoming') +
+                buildSection('genre', 'star', 'star', `${genrePick.name} Highlights`, `More ${genrePick.name} anime`, `/chat.html?q=Recommend+${encodeURIComponent(genrePick.name)}+anime`);
 
             // Hide recommended initially
             const recSection = document.getElementById('cat-recommended');
