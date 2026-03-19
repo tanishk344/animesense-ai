@@ -41,18 +41,18 @@
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
         <div class="nav-container">
-            <a href="/index.html" class="nav-logo">
+            <a href="/" class="nav-logo">
                 <div class="logo-icon">
                     <i class="fas fa-bolt"></i>
                 </div>
                 <span class="logo-text">Anime<span class="logo-accent">Sense</span></span>
             </a>
             <div class="nav-links" id="navLinks">
-                <a href="/index.html" class="nav-link active">Home</a>
-                <a href="/chat.html" class="nav-link">AI Chat</a>
-                <a href="/search.html" class="nav-link">Search</a>
-                <a href="/watchlist.html" class="nav-link">Watchlist</a>
-                <a href="/dashboard.html" class="nav-link">Dashboard</a>
+                <a href="/" class="nav-link active">Home</a>
+                <a href="/chat" class="nav-link">AI Chat</a>
+                <a href="/search" class="nav-link">Search</a>
+                <a href="/watchlist" class="nav-link">Watchlist</a>
+                <a href="/dashboard" class="nav-link">Dashboard</a>
             </div>
             <div class="nav-actions">
                 <!-- Auth: Login Button (visible when logged out) -->
@@ -62,14 +62,14 @@
                 </button>
                 <!-- Auth: User Section (visible when logged in) -->
                 <div class="auth-user-section" id="authUserSection">
-                    <a href="/dashboard.html" class="auth-user-avatar" id="authUserAvatar" title="Dashboard"></a>
+                    <a href="/dashboard" class="auth-user-avatar" id="authUserAvatar" title="Dashboard"></a>
                     <span class="auth-user-name" id="authUserName"></span>
                     <button class="auth-logout-btn"
-                        onclick="FirebaseAuth.logoutUser().then(()=>location.href='/index.html')">
+                        onclick="FirebaseAuth.logoutUser().then(()=>location.href='/')">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </button>
                 </div>
-                <a href="/chat.html" class="btn btn-primary btn-nav btn-glow">
+                <a href="/chat" class="btn btn-primary btn-nav btn-glow">
                     <span>Try Anime AI Now</span>
                     <i class="fas fa-arrow-right"></i>
                 </a>
@@ -96,7 +96,7 @@
                 Get accurate anime info, recommendations, and insights powered by AI.
             </p>
             <div class="hero-actions animate-fade-in-up delay-2">
-                <a href="/chat.html" class="btn btn-primary btn-lg btn-glow">
+                <a href="/chat" class="btn btn-primary btn-lg btn-glow">
                     <span>Try Anime AI Now</span>
                     <i class="fas fa-arrow-right"></i>
                 </a>
@@ -191,7 +191,7 @@
                     <h3>AI Chat Assistant</h3>
                     <p>Ask anything about anime — get instant, intelligent, context-aware answers from our AI expert.
                     </p>
-                    <a href="/chat.html" class="feature-link">Try it now <i class="fas fa-arrow-right"></i></a>
+                    <a href="/chat" class="feature-link">Try it now <i class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="feature-card animate-on-scroll" data-delay="100">
                     <div class="feature-icon">
@@ -200,7 +200,7 @@
                     <h3>Find Anime by Description</h3>
                     <p>Describe any anime from memory and let AI identify it. "Anime where a boy eats a cursed
                         finger..."</p>
-                    <a href="/chat.html?q=Anime+where+humans+fight+giants+behind+walls" class="feature-link">Identify
+                    <a href="/chat?q=Anime+where+humans+fight+giants+behind+walls" class="feature-link">Identify
                         anime <i class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="feature-card animate-on-scroll" data-delay="200">
@@ -210,7 +210,7 @@
                     <h3>Character Battles</h3>
                     <p>Pit any two anime characters against each other for AI-powered battle analysis with power
                         scaling.</p>
-                    <a href="/chat.html?q=Goku+vs+Saitama" class="feature-link">Start battle <i
+                    <a href="/chat?q=Goku+vs+Saitama" class="feature-link">Start battle <i
                             class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="feature-card animate-on-scroll" data-delay="300">
@@ -220,7 +220,7 @@
                     <h3>Anime Quiz</h3>
                     <p>Test your anime knowledge with synopsis-based trivia. Track your score and compete with yourself!
                     </p>
-                    <a href="/chat.html?q=Anime+quiz" class="feature-link">Play quiz <i
+                    <a href="/chat?q=Anime+quiz" class="feature-link">Play quiz <i
                             class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="feature-card animate-on-scroll" data-delay="400">
@@ -230,7 +230,7 @@
                     <h3>Watch Tracker</h3>
                     <p>Track everything you've watched with stats — total episodes, average score, and genre breakdown.
                     </p>
-                    <a href="/chat.html?q=Show+my+watchlist" class="feature-link">My watchlist <i
+                    <a href="/chat?q=Show+my+watchlist" class="feature-link">My watchlist <i
                             class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="feature-card animate-on-scroll" data-delay="500">
@@ -239,7 +239,7 @@
                     </div>
                     <h3>Smart Recommendations</h3>
                     <p>Get personalized suggestions based on your watch history, genres, and search patterns.</p>
-                    <a href="/chat.html?q=Recommend+anime" class="feature-link">Get recs <i
+                    <a href="/chat?q=Recommend+anime" class="feature-link">Get recs <i
                             class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="feature-card animate-on-scroll" data-delay="600">
@@ -249,7 +249,7 @@
                     <h3>Deep Analysis</h3>
                     <p>Explore themes, symbolism, character arcs, and philosophical interpretations of complex anime.
                     </p>
-                    <a href="/chat.html?q=Analyze+the+themes+of+Evangelion" class="feature-link">Analyze <i
+                    <a href="/chat?q=Analyze+the+themes+of+Evangelion" class="feature-link">Analyze <i
                             class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="feature-card animate-on-scroll" data-delay="700">
@@ -267,7 +267,7 @@
                     <h3>Personality Test</h3>
                     <p>Discover your anime personality! Answer 7 questions and get personalized anime matches based on
                         your traits.</p>
-                    <a href="/chat.html?q=Anime+personality+test" class="feature-link">Take test <i
+                    <a href="/chat?q=Anime+personality+test" class="feature-link">Take test <i
                             class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="feature-card animate-on-scroll" data-delay="900">
@@ -277,7 +277,7 @@
                     <h3>Power Scaling Arena</h3>
                     <p>Deep power scaling analysis with structured breakdowns — abilities, combat style, universe rules,
                         and verdicts.</p>
-                    <a href="/chat.html?q=Gojo+vs+Sukuna" class="feature-link">Start battle <i
+                    <a href="/chat?q=Gojo+vs+Sukuna" class="feature-link">Start battle <i
                             class="fas fa-arrow-right"></i></a>
                 </div>
             </div>
@@ -340,37 +340,37 @@
             </div>
             <div class="queries-grid">
                 <div class="query-card animate-on-scroll"
-                    onclick="window.location.href='/chat.html?q=How+many+episodes+does+Naruto+have'">
+                    onclick="window.location.href='/chat?q=How+many+episodes+does+Naruto+have'">
                     <div class="query-icon"><i class="fas fa-list-ol"></i></div>
                     <p>"How many episodes does Naruto have?"</p>
                     <span class="query-category">Facts & Info</span>
                 </div>
                 <div class="query-card animate-on-scroll"
-                    onclick="window.location.href='/chat.html?q=Explain+the+ending+of+Attack+on+Titan'">
+                    onclick="window.location.href='/chat?q=Explain+the+ending+of+Attack+on+Titan'">
                     <div class="query-icon"><i class="fas fa-lightbulb"></i></div>
                     <p>"Explain the ending of Attack on Titan"</p>
                     <span class="query-category">Story Analysis</span>
                 </div>
                 <div class="query-card animate-on-scroll"
-                    onclick="window.location.href='/chat.html?q=Recommend+dark+psychological+anime'">
+                    onclick="window.location.href='/chat?q=Recommend+dark+psychological+anime'">
                     <div class="query-icon"><i class="fas fa-star"></i></div>
                     <p>"Recommend dark psychological anime"</p>
                     <span class="query-category">Recommendations</span>
                 </div>
                 <div class="query-card animate-on-scroll"
-                    onclick="window.location.href='/chat.html?q=When+will+the+next+episode+of+Demon+Slayer+release'">
+                    onclick="window.location.href='/chat?q=When+will+the+next+episode+of+Demon+Slayer+release'">
                     <div class="query-icon"><i class="fas fa-calendar"></i></div>
                     <p>"When does Demon Slayer next episode release?"</p>
                     <span class="query-category">Release Tracking</span>
                 </div>
                 <div class="query-card animate-on-scroll"
-                    onclick="window.location.href='/chat.html?q=What+is+the+symbolism+in+Neon+Genesis+Evangelion'">
+                    onclick="window.location.href='/chat?q=What+is+the+symbolism+in+Neon+Genesis+Evangelion'">
                     <div class="query-icon"><i class="fas fa-masks-theater"></i></div>
                     <p>"What's the symbolism in Evangelion?"</p>
                     <span class="query-category">Deep Analysis</span>
                 </div>
                 <div class="query-card animate-on-scroll"
-                    onclick="window.location.href='/chat.html?q=Give+me+a+recap+of+One+Piece+Wano+arc'">
+                    onclick="window.location.href='/chat?q=Give+me+a+recap+of+One+Piece+Wano+arc'">
                     <div class="query-icon"><i class="fas fa-book-open"></i></div>
                     <p>"Give me a recap of One Piece Wano arc"</p>
                     <span class="query-category">Recaps</span>
@@ -388,7 +388,7 @@
                 <p>Join thousands of anime fans using AnimeSense AI to discover, track, and understand their favorite
                     anime.</p>
                 <div class="cta-actions">
-                    <a href="/chat.html" class="btn btn-primary btn-lg btn-glow">
+                    <a href="/chat" class="btn btn-primary btn-lg btn-glow">
                         <span>Try Anime AI Now</span>
                         <i class="fas fa-arrow-right"></i>
                     </a>
@@ -418,10 +418,10 @@
                 </div>
                 <div class="footer-links">
                     <h4>Features</h4>
-                    <a href="/chat.html">AI Chat</a>
-                    <a href="/chat.html">Recommendations</a>
-                    <a href="/search.html">Anime Search</a>
-                    <a href="/watchlist.html">Watchlist</a>
+                    <a href="/chat">AI Chat</a>
+                    <a href="/chat">Recommendations</a>
+                    <a href="/search">Anime Search</a>
+                    <a href="/watchlist">Watchlist</a>
                 </div>
                 <div class="footer-links">
                     <h4>Connect</h4>

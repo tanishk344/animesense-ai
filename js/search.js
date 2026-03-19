@@ -202,7 +202,7 @@ async function openAnimeDetail(malId) {
                         <button class="btn ${inWL ? 'btn-glass' : 'btn-primary'} btn-sm" onclick="toggleWatchlistFromDetail(${a.mal_id}, this)" id="wlBtn-${a.mal_id}">
                             <i class="fas ${inWL ? 'fa-check' : 'fa-plus'}"></i> ${inWL ? 'In Watchlist' : 'Add to Watchlist'}
                         </button>
-                        <a href="/chat.html?q=Tell+me+about+${encodeURIComponent(a.title)}" class="btn btn-glass btn-sm"><i class="fas fa-robot"></i> Ask AI</a>
+                        <a href="/chat?q=Tell+me+about+${encodeURIComponent(a.title)}" class="btn btn-glass btn-sm"><i class="fas fa-robot"></i> Ask AI</a>
                     </div>
                 </div>
             </div>

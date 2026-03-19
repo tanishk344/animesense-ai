@@ -20,7 +20,7 @@ const DiscoveryFeed = (() => {
         const title = anime.title || 'Unknown';
 
         return `
-            <div class="discovery-card" onclick="window.location.href='/chat.html?q=Tell+me+about+${encodeURIComponent(title)}'" title="${title}">
+            <div class="discovery-card" onclick="window.location.href='/chat?q=Tell+me+about+${encodeURIComponent(title)}'" title="${title}">
                 <div class="discovery-card-img-wrap">
                     <img class="discovery-card-img" src="${img}" alt="${title}" loading="lazy" onerror="this.src='/fallback.jpg'">
                     <span class="discovery-card-score"><i class="fas fa-star"></i> ${score}</span>
