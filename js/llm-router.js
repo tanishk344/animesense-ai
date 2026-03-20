@@ -12,7 +12,43 @@ const LLMRouter = (() => {
 
     const promptCache = new Map();
 
+    // ══════════════ USER INTELLIGENCE LAYER ══════════════
+    function detectUserLevel(query) {
+        if (!query) return 'casual';
+        const q = query.toLowerCase();
+        
+        if (q.match(/power scaling|lore|manga vs anime|foreshadowing|symbolism|world building|authorial intent|canon|filler list|vs battles|baryon|gear 5|bankai|curse energy/)) {
+            return 'hardcore';
+        }
+        if (q.match(/what is|who is|explain|what's|how to start|watch order|is it good|worth watching|should i watch/)) {
+            return 'beginner';
+        }
+        return 'casual';
+    }
+
+    function getUserLevelInstruction(level) {
+        if (level === 'beginner') {
+            return "\n\n[USER INTELLIGENCE LAYER: BEGINNER]\nOutput Style: Simple + clean. Avoid complex terms.";
+        } else if (level === 'hardcore') {
+            return "\n\n[USER INTELLIGENCE LAYER: HARDCORE FAN]\nOutput Style: Deep + analytical + advanced terms. Include hidden details and lore references.";
+        }
+        return "\n\n[USER INTELLIGENCE LAYER: CASUAL FAN]\nOutput Style: Info + little insight. Balanced explanation.";
+    }
+
+    function applyIntelligenceLayer(messages) {
+        const lastUserMsg = messages.slice().reverse().find(m => m.role === 'user');
+        if (lastUserMsg) {
+            const level = detectUserLevel(lastUserMsg.content);
+            const instruction = getUserLevelInstruction(level);
+            const sysMsg = messages.find(m => m.role === 'system');
+            if (sysMsg && !sysMsg.content.includes('[USER INTELLIGENCE LAYER')) {
+                sysMsg.content += instruction;
+            }
+        }
+    }
+
     async function chat(messages, options = {}) {
+        applyIntelligenceLayer(messages);
         const cacheKey = JSON.stringify(messages) + (options.model || '') + (options.temperature || '');
         if (promptCache.has(cacheKey)) {
             console.log('Cache hit');
@@ -51,6 +87,7 @@ const LLMRouter = (() => {
 
     async function streamChat(messages, onChunk, options = {}) {
         options.stream = true;
+        applyIntelligenceLayer(messages);
 
         try {
             const response = await fetch(API_ENDPOINT, {

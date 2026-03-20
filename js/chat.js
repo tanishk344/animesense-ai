@@ -35,68 +35,115 @@ if (_originalLLMChat) {
     };
 }
 
-// ══════════ USER MEMORY SYSTEM (v10 Expanded) ══════════
+// ══════════ PERSISTENT USER MEMORY (v12) ══════════
+const UserMemoryStorageKey = 'as_persistent_memory_v2';
+function loadMemory() {
+    return JSON.parse(localStorage.getItem(UserMemoryStorageKey) || '{"favoriteAnime":[],"genres":[],"userLevel":"","history":[],"watched":[],"interactions":{},"searchedAnime":[],"favoriteGenres":[],"battleHistory":[]}');
+}
+
 const userMemory = {
-    watched: JSON.parse(sessionStorage.getItem('as_watched') || '[]'),
-    liked: JSON.parse(sessionStorage.getItem('as_liked') || '[]'),
-    genres: JSON.parse(sessionStorage.getItem('as_genres') || '[]'),
-    searchedAnime: JSON.parse(sessionStorage.getItem('as_searched_anime') || '[]'),
-    favoriteGenres: JSON.parse(sessionStorage.getItem('as_favorite_genres') || '[]'),
-    battleHistory: JSON.parse(sessionStorage.getItem('as_battle_history') || '[]'),
-    interactions: {},
+    ...loadMemory(),
+
+    save() {
+        localStorage.setItem(UserMemoryStorageKey, JSON.stringify({
+            favoriteAnime: this.favoriteAnime,
+            genres: this.genres,
+            userLevel: this.userLevel,
+            history: this.history,
+            watched: this.watched,
+            interactions: this.interactions,
+            searchedAnime: this.searchedAnime,
+            favoriteGenres: this.favoriteGenres,
+            battleHistory: this.battleHistory
+        }));
+    },
+
+    addQuery(query) {
+        if (!query) return;
+        this.history.push(query);
+        if (this.history.length > 5) this.history.shift();
+
+        // Dynamically detect and update User Level
+        const q = query.toLowerCase();
+        if (q.match(/power scaling|lore|manga vs anime|foreshadowing|symbolism|world building|authorial intent|canon|filler list|vs battles|baryon|gear 5|bankai|curse energy/)) {
+            this.userLevel = 'Hardcore Fan';
+        } else if (q.match(/what is|who is|explain|what's|how to start|watch order|is it good|worth watching|should i watch/)) {
+            this.userLevel = 'Beginner';
+        } else {
+            this.userLevel = 'Casual Fan';
+        }
+
+        this.save();
+    },
 
     addWatched(title) {
         if (title && !this.watched.includes(title)) {
             this.watched.push(title);
-            sessionStorage.setItem('as_watched', JSON.stringify(this.watched));
+            this.save();
         }
     },
-    addLiked(title) {
-        if (title && !this.liked.includes(title)) {
-            this.liked.push(title);
-            sessionStorage.setItem('as_liked', JSON.stringify(this.liked));
+
+    trackInteraction(title) {
+        if (!title) return;
+        this.interactions[title] = (this.interactions[title] || 0) + 1;
+        this.addWatched(title);
+        
+        if (!this.searchedAnime.includes(title)) {
+            this.searchedAnime.push(title);
         }
+        
+        // Convert to Favorite Anime if interacted often
+        if (this.interactions[title] >= 2 && !this.favoriteAnime.includes(title)) {
+            this.favoriteAnime.push(title);
+        }
+
+        // Sync to Firestore (fire-and-forget)
+        if (typeof FirebaseDB !== 'undefined' && FirebaseDB.isReady()) {
+            FirebaseDB.trackSearchedAnime(title).catch(() => { });
+        }
+        this.save();
     },
+
     addGenres(genres) {
         if (!genres) return;
         const arr = Array.isArray(genres) ? genres : [genres];
         arr.forEach(g => {
             if (g && !this.genres.includes(g)) this.genres.push(g);
-            if (g && !this.favoriteGenres.includes(g)) {
-                this.favoriteGenres.push(g);
-                sessionStorage.setItem('as_favorite_genres', JSON.stringify(this.favoriteGenres));
-            }
+            if (g && !this.favoriteGenres.includes(g)) this.favoriteGenres.push(g);
         });
-        sessionStorage.setItem('as_genres', JSON.stringify(this.genres));
+        this.save();
     },
-    trackInteraction(title) {
-        if (!title) return;
-        this.interactions[title] = (this.interactions[title] || 0) + 1;
-        if (this.interactions[title] >= 2) this.addLiked(title);
-        this.addWatched(title);
-        // Track in searchedAnime
-        if (!this.searchedAnime.includes(title)) {
-            this.searchedAnime.push(title);
-            sessionStorage.setItem('as_searched_anime', JSON.stringify(this.searchedAnime));
-        }
-        // Sync to Firestore (fire-and-forget)
-        if (typeof FirebaseDB !== 'undefined' && FirebaseDB.isReady()) {
-            FirebaseDB.trackSearchedAnime(title).catch(() => { });
-        }
-    },
-    addBattle(fighter1, fighter2) {
-        this.battleHistory.push({ fighter1, fighter2, time: new Date().toISOString() });
-        sessionStorage.setItem('as_battle_history', JSON.stringify(this.battleHistory.slice(-20)));
-    },
-    getTopGenres(n = 5) { return [...new Set(this.genres)].slice(0, n); },
+
     getContext() {
         let ctx = '';
-        if (this.watched.length) ctx += `\nPreviously searched anime: ${this.watched.slice(-10).join(', ')}`;
-        if (this.liked.length) ctx += `\nLiked/frequently asked: ${this.liked.join(', ')}`;
-        if (this.genres.length) ctx += `\nPreferred genres: ${this.getTopGenres().join(', ')}`;
-        if (this.battleHistory.length) ctx += `\nRecent battles: ${this.battleHistory.slice(-3).map(b => `${b.fighter1} vs ${b.fighter2}`).join(', ')}`;
+        if (this.favoriteAnime.length > 0) {
+            ctx += `\nFavorite anime: ${this.favoriteAnime.slice(-5).join(', ')}`;
+        } else if (this.watched.length > 0) {
+            ctx += `\nRecently searched: ${this.watched.slice(-5).join(', ')}`;
+        }
+        if (this.genres.length > 0) ctx += `\nPreferred genres: ${this.genres.slice(-5).join(', ')}`;
+        if (this.userLevel) ctx += `\nUser level: ${this.userLevel}`;
+        if (this.history.length > 0) ctx += `\nRecent queries: "${this.history.join('", "')}"`;
         return ctx;
-    }
+    },
+
+    addBattle(fighter1, fighter2) {
+        this.battleHistory.push({ fighter1, fighter2, time: new Date().toISOString() });
+        if (this.battleHistory.length > 20) this.battleHistory.shift();
+        this.save();
+    },
+
+    getTopGenres(n = 5) { return [...new Set(this.genres)].slice(0, n); },
+
+    // Legacy method supports
+    addLiked(title) {
+        if (title && !this.favoriteAnime.includes(title)) {
+            this.favoriteAnime.push(title);
+            this.save();
+        }
+    },
+    get liked() { return this.favoriteAnime; },
+    set liked(v) { this.favoriteAnime = v; }
 };
 
 // ══════════ WATCHLIST SYSTEM ══════════
@@ -286,6 +333,7 @@ async function sendMessage() {
     chatWelcome.style.display = 'none'; chatMessages.style.display = 'flex'; clearChatBtn.style.display = 'inline-flex';
     appendMessage('user', text);
     ChatHistoryManager.addMessage(currentChatId, 'user', text);
+    userMemory.addQuery(text); // Track query in persistent memory
     chatInput.value = ''; chatInput.style.height = 'auto';
     const loadingId = showLoading();
     try {
@@ -426,13 +474,6 @@ async function generateResponse(query) {
         console.log(`[METRIC] Context resolved to: ${primaryTitle}`);
     }
 
-    // Smart Intent Clarification for very short, ambiguous queries
-    if (entities.confidence < 0.5 && entities.animeTitles.length > 0 && query.trim().split(' ').length <= 2) {
-        // Even if we know the title, ask what they want to know
-        const titleName = entities.animeTitles[0];
-        return `Are you looking for **${titleName}** anime details or episode count?`;
-    }
-
     if (primaryTitle) {
         lastDiscussedAnimeTitle = primaryTitle; // Update global context tracker
     }
@@ -482,20 +523,20 @@ async function generateResponse(query) {
                         return await handleLLMQuery(query, intent, anime);
                     }
                     case 'RELEASE': return buildReleaseResponse(anime, [anime]);
-                    case 'DISCOVERY': case 'SEARCH': case 'ANIME_INFO': return await buildFullDetailResponse(anime, null);
+                    case 'DISCOVERY': case 'SEARCH': case 'ANIME_INFO': return await handleLLMDetail(query, anime);
                     case 'WATCH_ORDER': {
                         const sr = await AnimeAPI.searchAnime(primaryTitle, 1, 10);
                         return buildWatchOrderFallback(anime, sr.data || [anime]);
                     }
                     case 'CHARACTERS': return await buildCharacterResponse(anime);
                     case 'RECOMMENDATION': return await handleRecommendSimilar(anime);
-                    default: return await buildFullDetailResponse(anime, null);
+                    default: return await handleLLMDetail(query, anime);
                 }
             }
         } catch (e) {
             console.error("Failed to load data");
             // 7. Error Recovery System
-            const fallbackMsg = `Anime data service is temporarily unavailable. Here's what I know...`;
+            const fallbackMsg = `I couldn't find exact data, but here's what I know...`;
             try {
                 const llmFallback = await LLMRouter.chat([
                     { role: 'system', content: LLMRouter.ANIME_SYSTEM_PROMPT },
@@ -953,18 +994,44 @@ async function handleLLMQuery(query, queryType, anime) {
         ANIME_INFO: 'Provide comprehensive information about this anime including power system, key arcs, and notable aspects.'
     };
     const memoryCtx = userMemory.getContext();
+    const jsonHint = queryType !== 'FACTUAL' ? `\n\nIMPORTANT: Return exactly this JSON format: {"response": "your markdown answer", "suggestions": ["Dynamic action 1", "Dynamic action 2", "Dynamic action 3"]}` : '';
     const messages = [
         { role: 'system', content: LLMRouter.ANIME_SYSTEM_PROMPT },
-        { role: 'user', content: `${typeHints[queryType] || ''}\n\nUser question: "${query}"${memoryCtx ? '\n\nUser context:' + memoryCtx : ''}\n\n${context}` }
+        { role: 'user', content: `${typeHints[queryType] || ''}\n\nUser question: "${query}"${memoryCtx ? '\n\nUser context:' + memoryCtx : ''}\n\n${context}${jsonHint}` }
     ];
     try {
-        let responseText = result.content;
-
-        // Remove footer for strict factual responses
-        if (queryType !== 'FACTUAL') {
-            const kbTag = (typeof AnimeKnowledge !== 'undefined' && AnimeKnowledge.lookup(anime.title)) ? ' + Knowledge Base' : '';
-            responseText += `\n\n> 🤖 *AI analysis by AnimeSense AI Analysis Engine${kbTag}*`;
+        const result = await LLMRouter.chat(messages, { maxTokens: 1000, temperature: 0.6 });
+        
+        if (queryType === 'FACTUAL') {
+            return result.content;
         }
+
+        let parsed;
+        try {
+            const jsonMatch = result.content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                parsed = JSON.parse(jsonMatch[0]);
+            } else {
+                parsed = JSON.parse(result.content.replace(/```json\n?|\n?```/g, '').trim());
+            }
+        } catch(e) {
+            console.warn("Invalid JSON, falling back to text mode");
+            parsed = { response: result.content, suggestions: [] };
+        }
+
+        let responseText = parsed.response;
+
+        if (parsed.suggestions && parsed.suggestions.length > 0) {
+            responseText += `\n\n<div style="margin-top: 15px; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary);">You can also explore:</div>`;
+            responseText += `<div class="suggestion-chips" style="display:flex; flex-wrap:wrap; gap:8px;">`;
+            parsed.suggestions.forEach(s => {
+                responseText += `<button class="suggestion-chip" onclick="askSuggestion('${s.replace(/'/g, "\\'")}')" style="background:var(--bg-tertiary); border:1px solid var(--border-light); padding:6px 12px; border-radius:20px; font-size:0.85rem; color:var(--text-primary); cursor:pointer; transition:all 0.2s;">${s}</button>`;
+            });
+            responseText += `</div>`;
+        }
+
+        const kbTag = (typeof AnimeKnowledge !== 'undefined' && AnimeKnowledge.lookup(anime.title)) ? ' + Knowledge Base' : '';
+        responseText += `\n\n> 🤖 *AI analysis by AnimeSense AI Analysis Engine${kbTag}*`;
 
         return responseText;
     } catch (e) {
@@ -979,11 +1046,35 @@ async function handleLLMDetail(query, anime) {
     const context = LLMRouter.buildAnimeContext(anime, charData);
     const messages = [
         { role: 'system', content: LLMRouter.ANIME_SYSTEM_PROMPT },
-        { role: 'user', content: `The user asked: "${query}"\n\nProvide a comprehensive, well-formatted response with all key details (title, synopsis, episodes, rating, studio, year, characters). Use tables for structured data.\n\n${context}` }
+        { role: 'user', content: `The user asked: "${query}"\n\nProvide an intelligent response in exactly this JSON format:\n{"response": "Your markdown answer (intro, details, value-add) ignoring suggestions.", "suggestions": ["Dynamic action 1", "Dynamic action 2", "Dynamic action 3"]}\n\n1. A short intro (2-3 lines)\n2. Key details (Episodes, Genre, Status)\n3. Set 3 dynamic suggestions tailored to this anime.\n\nDo NOT use "Are you looking for X or Y". Be professional, confident, and clean.\n\n${context}` }
     ];
     try {
-        const result = await LLMRouter.chat(messages, { maxTokens: 1800, temperature: 0.6 });
-        return result.content + `\n\n> 🤖 *AnimeSense Intelligence Engine · Live data from AnimeSense Data System*`;
+        const result = await LLMRouter.chat(messages, { maxTokens: 1000, temperature: 0.6 });
+        let parsed;
+        try {
+            const jsonMatch = result.content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                parsed = JSON.parse(jsonMatch[0]);
+            } else {
+                parsed = JSON.parse(result.content.replace(/```json\n?|\n?```/g, '').trim());
+            }
+        } catch(e) {
+            console.warn("Invalid JSON, falling back to text mode");
+            parsed = { response: result.content, suggestions: [] };
+        }
+
+        let finalResponse = parsed.response;
+        
+        if (parsed.suggestions && parsed.suggestions.length > 0) {
+            finalResponse += `\n\n<div style="margin-top: 15px; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary);">You can also explore:</div>`;
+            finalResponse += `<div class="suggestion-chips" style="display:flex; flex-wrap:wrap; gap:8px;">`;
+            parsed.suggestions.forEach(s => {
+                finalResponse += `<button class="suggestion-chip" onclick="askSuggestion('${s.replace(/'/g, "\\'")}')" style="background:var(--bg-tertiary); border:1px solid var(--border-light); padding:6px 12px; border-radius:20px; font-size:0.85rem; color:var(--text-primary); cursor:pointer; transition:all 0.2s;">${s}</button>`;
+            });
+            finalResponse += `</div>`;
+        }
+        
+        return finalResponse + `\n\n> 🤖 *AnimeSense Intelligence Engine · Live data from AnimeSense Data System*`;
     } catch (e) {
         return await buildFullDetailResponse(anime, charData);
     }
@@ -1282,9 +1373,10 @@ async function handleGeneralLLM(query) {
     }
     const memoryCtx = userMemory.getContext();
     const isFactualHint = /how many|when did|who is|who created|total|count|release date/i.test(query);
-    const userPromptContent = isFactualHint
+    
+    let userPromptContent = isFactualHint
         ? `Answer this factual question as concisely as possible in exactly 1-2 sentences. Do NOT add markdown tables, headers, lists, character info, plot summaries, or extra facts. Just answer the specific question asked.\n\nUser question: "${query}"${memoryCtx ? '\n\nUser context:' + memoryCtx : ''}${knowledgeCtx}`
-        : `${query}${memoryCtx ? '\n\nUser context:' + memoryCtx : ''}${knowledgeCtx}`;
+        : `Answer the following question thoughtfully.\n\nIMPORTANT: Return exactly this JSON format:\n{"response": "Your markdown answer ignoring suggestions.", "suggestions": ["Dynamic action 1", "Dynamic action 2", "Dynamic action 3"]}\n\nUser question: "${query}"${memoryCtx ? '\n\nUser context:' + memoryCtx : ''}${knowledgeCtx}`;
 
     const messages = [
         { role: 'system', content: LLMRouter.ANIME_SYSTEM_PROMPT },
@@ -1296,7 +1388,31 @@ async function handleGeneralLLM(query) {
         // Return without footer for simple factual responses
         if (isFactualHint) return result.content;
 
-        return result.content + `\n\n> 🤖 *AnimeSense Intelligence Engine*`;
+        let parsed;
+        try {
+            const jsonMatch = result.content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                parsed = JSON.parse(jsonMatch[0]);
+            } else {
+                parsed = JSON.parse(result.content.replace(/```json\n?|\n?```/g, '').trim());
+            }
+        } catch(e) {
+            console.warn("Invalid JSON, falling back to text mode");
+            parsed = { response: result.content, suggestions: [] };
+        }
+
+        let responseText = parsed.response;
+
+        if (parsed.suggestions && parsed.suggestions.length > 0) {
+            responseText += `\n\n<div style="margin-top: 15px; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary);">You can also explore:</div>`;
+            responseText += `<div class="suggestion-chips" style="display:flex; flex-wrap:wrap; gap:8px;">`;
+            parsed.suggestions.forEach(s => {
+                responseText += `<button class="suggestion-chip" onclick="askSuggestion('${s.replace(/'/g, "\\'")}')" style="background:var(--bg-tertiary); border:1px solid var(--border-light); padding:6px 12px; border-radius:20px; font-size:0.85rem; color:var(--text-primary); cursor:pointer; transition:all 0.2s;">${s}</button>`;
+            });
+            responseText += `</div>`;
+        }
+
+        return responseText + `\n\n> 🤖 *AnimeSense Intelligence Engine*`;
     } catch (e) {
         return generateFallbackResponse(query);
     }
