@@ -51,7 +51,6 @@ const LLMRouter = (() => {
         applyIntelligenceLayer(messages);
         const cacheKey = JSON.stringify(messages) + (options.model || '') + (options.temperature || '');
         if (promptCache.has(cacheKey)) {
-            console.log('Cache hit');
             return promptCache.get(cacheKey);
         }
 
@@ -73,7 +72,6 @@ const LLMRouter = (() => {
                 throw new Error(result.error);
             }
 
-            console.log("Data loaded successfully");
 
             if (promptCache.size > 100) promptCache.clear();
             promptCache.set(cacheKey, result);

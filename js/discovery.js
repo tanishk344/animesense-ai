@@ -87,13 +87,11 @@ const DiscoveryFeed = (() => {
             const res = await fetch(url);
             const data = await res.json();
             
-            console.log("Data loaded successfully");
             return data;
         } catch (err) {
             console.error("Failed to load data");
             
             if (retries > 0) {
-                console.log(`Retrying... (${retries} left)`);
                 return fetchWithRetry(url, retries - 1, delay * 2);
             }
             
@@ -105,7 +103,6 @@ const DiscoveryFeed = (() => {
         const cached = getCachedData(cacheKey);
 
         if (cached) {
-            console.log("Using cached data");
             return cached;
         }
 

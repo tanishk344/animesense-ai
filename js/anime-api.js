@@ -61,7 +61,6 @@ const AnimeAPI = {
 
                 const data = await res.json();
                 const t1 = performance.now();
-                console.log(`[Perf] AnimeSense Data System: ${task.endpoint} - ${(t1 - t0).toFixed(2)}ms`);
 
                 this.cache.set(task.cacheKey, data);
                 try {
@@ -100,14 +99,12 @@ const AnimeAPI = {
                     if ((Date.now() - parsed.timestamp) < CACHE_LIFESPAN) {
                         this.popularAnimeCache = new Map(parsed.data);
                         this.lastCacheRefresh = parsed.timestamp;
-                        console.log(`[Cache] Loaded ${this.popularAnimeCache.size} popular anime from memory`);
                         return;
                     }
                 }
             } catch (e) { }
         }
 
-        console.log(`[Cache] Fetching Top 200 Anime for Memory Cache...`);
         let allAnime = [];
         try {
             // Fetch 8 pages of 25 = 200 top anime
@@ -147,7 +144,6 @@ const AnimeAPI = {
                 timestamp: this.lastCacheRefresh,
                 data: Array.from(this.popularAnimeCache.entries())
             }));
-            console.log(`[Cache] Top 200 caching complete. Indexed ${this.popularAnimeCache.size} keys.`);
 
         } catch (e) { console.warn('[Cache] Failed to hydrate popular anime cache', e); }
     },
@@ -174,7 +170,6 @@ const AnimeAPI = {
 
         // Check Popular Cache First
         if (page === 1 && this.popularAnimeCache.has(q)) {
-            console.log(`[Cache Hit] Instant retrieval for: ${query}`);
             const cachedItem = this.popularAnimeCache.get(q);
 
             // Dynamically fetch and background-cache characters if we haven't yet
@@ -185,7 +180,6 @@ const AnimeAPI = {
             return { data: [cachedItem] };
         }
 
-        console.log(`[Cache Miss] Fetching data: ${query}`);
         const encodedQ = encodeURIComponent(query);
         const result = await this._fetch(`/anime?q=${encodedQ}&page=${page}&limit=${limit}&sfw=true`, true); // use sessionStorage
 

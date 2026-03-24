@@ -378,7 +378,7 @@ async function generateResponse(query) {
         safeQuery.includes('openai') || safeQuery.includes('groq') || 
         safeQuery.includes('openrouter') || safeQuery.includes('jikan') || 
         safeQuery.includes('llm')) {
-        return "This platform is powered by a proprietary AnimeSense AI system designed to deliver accurate anime insights.";
+        return "Powered by AnimeSense Intelligence Engine";
     }
 
     // ── Intercept quiz answers (v10: support both AnimeQuiz and legacy quizState) ──
@@ -407,7 +407,6 @@ async function generateResponse(query) {
     if (!intent || intent === 'ANIME_INFO') {
         console.warn(`[METRIC] Classification Ambiguous/Fallback: "${query}" -> ${intent}`);
     } else {
-        console.log(`[METRIC] Classified Intent: "${query}" -> ${intent}`);
     }
 
     // Intent shortcuts
@@ -471,7 +470,6 @@ async function generateResponse(query) {
     const isContextualQuery = /\b(it|this|that|he|she|they|the anime|the show|it's)\b/i.test(query) || ['FACTUAL', 'SUMMARY', 'ANALYSIS', 'ENDING_EXPLANATION', 'RELEASE'].includes(intent);
     if (!primaryTitle && lastDiscussedAnimeTitle && isContextualQuery) {
         primaryTitle = lastDiscussedAnimeTitle;
-        console.log(`[METRIC] Context resolved to: ${primaryTitle}`);
     }
 
     if (primaryTitle) {

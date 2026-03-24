@@ -183,7 +183,6 @@ async function callProvider(provider, messages, options = {}) {
         if (duration > 5000) {
             console.warn(`[METRIC_SLOW_AI] Provider: ${provider}, Model: ${model}, Time: ${duration}ms`);
         } else {
-            console.log(`[METRIC_AI] Provider: ${provider}, Model: ${model}, Time: ${duration}ms`);
         }
 
         clearTimeout(timeout);

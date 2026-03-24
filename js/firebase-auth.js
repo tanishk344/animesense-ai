@@ -52,7 +52,6 @@ const FirebaseAuth = (() => {
                 authStateListeners.forEach(fn => fn(currentUser));
             });
 
-            console.log('[FirebaseAuth] Initialized successfully');
             return true;
         } catch (err) {
             console.error("Failed to load data");

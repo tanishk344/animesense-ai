@@ -16,7 +16,6 @@ const FirebaseDB = (() => {
             }
             db = firebase.firestore();
             _initialized = true;
-            console.log('[FirebaseDB] Firestore initialized');
 
             // Listen for auth state changes to auto-create profile
             if (typeof FirebaseAuth !== 'undefined') {
@@ -64,7 +63,6 @@ const FirebaseDB = (() => {
             const doc = await docRef.get();
             if (doc.exists) {
                 _profileCache = doc.data();
-                console.log('[FirebaseDB] User profile loaded');
                 return _profileCache;
             }
 
@@ -93,7 +91,6 @@ const FirebaseDB = (() => {
 
             await docRef.set(profile);
             _profileCache = profile;
-            console.log('[FirebaseDB] New user profile created');
             return profile;
         } catch (err) {
             console.error("Failed to load data");
@@ -189,7 +186,6 @@ const FirebaseDB = (() => {
                 await updateTasteProfile('genre', { genres: entry.genres });
             }
 
-            console.log('[FirebaseDB] Added to watchlist:', entry.title);
             return { success: true, entry };
         } catch (err) {
             console.error("Failed to load data");
@@ -272,7 +268,6 @@ const FirebaseDB = (() => {
             // Update taste (general quiz interaction)
             await updateTasteProfile('quiz', { tags: ['Trivia'] });
 
-            console.log('[FirebaseDB] Quiz score saved');
             return true;
         } catch (err) {
             console.error("Failed to load data");
@@ -328,7 +323,6 @@ const FirebaseDB = (() => {
             // Update taste for battles
             await updateTasteProfile('battle', { tags: ['Action', 'Battle'] });
 
-            console.log('[FirebaseDB] Battle saved:', entry.fighter1, 'vs', entry.fighter2);
             return true;
         } catch (err) {
             console.error("Failed to load data");
@@ -436,7 +430,6 @@ const FirebaseDB = (() => {
             });
 
             if (_profileCache) _profileCache.personalityResult = result;
-            console.log('[FirebaseDB] Personality result saved');
             return true;
         } catch (err) {
             console.error("Failed to load data");

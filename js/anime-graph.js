@@ -87,7 +87,6 @@ const AnimeGraph = (() => {
         }
 
         initialized = true;
-        console.log(`[AnimeGraph] Built graph: ${nodes.anime.size} anime, ${nodes.character.size} characters, ${nodes.studio.size} studios, ${nodes.theme.size} themes, ${edges.length} edges`);
     }
 
     // ══════════ QUERY FUNCTIONS ══════════

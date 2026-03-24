@@ -180,8 +180,6 @@ const EntityDetector = (() => {
     function detect(query) {
         const q = normalizeQuery(query);
 
-        console.log(`[NORMALIZE] original_query: "${query}"`);
-        console.log(`[NORMALIZE] normalized_query: "${q}"`);
 
         const result = {
             intent: null,
