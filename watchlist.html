@@ -23,6 +23,20 @@
 </head>
 
 <body>
+    <div class="loading-screen" id="loadingScreen">
+        <img src="/assets/icon-192.png" alt="AnimeSense Loading" class="loading-icon">
+    </div>
+
+    <script>
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loadingScreen');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 500);
+            }
+        });
+    </script>
+
     <div class="bg-animation">
         <div class="bg-orb bg-orb-1"></div>
         <div class="bg-orb bg-orb-2"></div>
@@ -30,7 +44,7 @@
     <nav class="navbar scrolled" id="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo">
-                <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+                <img src="/assets/icon-32.png" alt="AnimeSense Icon" class="logo-icon">
                 <span class="logo-text">Anime<span class="logo-accent">Sense</span></span>
             </a>
             <div class="nav-links" id="navLinks">
