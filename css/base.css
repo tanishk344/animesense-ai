@@ -557,3 +557,13 @@ button:hover, .btn:hover, .logo-icon:hover, .hero-actions a:hover, .auth-nav-log
     transform: scale(1.05);
     filter: drop-shadow(0 0 15px rgba(124, 58, 237, 0.6));
 }
+
+/* Page Fade Transition */
+body {
+    animation: pageFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pageFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

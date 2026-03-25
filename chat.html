@@ -202,6 +202,80 @@
     <script src="js/entity-detector.js" defer></script>
     <script src="js/llm-router.js" defer></script>
     <script src="js/chat.js" defer></script>
+
+<script>
+    // Placeholder Animation
+    document.addEventListener('DOMContentLoaded', () => {
+        const input = document.getElementById('chatInput');
+        if(!input) return;
+        
+        const hints = [
+            "Ask about Naruto...",
+            "Find anime like Death Note...",
+            "What happened in Attack on Titan season 3?",
+            "Recommend me a dark fantasy anime...",
+            "Who is the strongest in Jujutsu Kaisen?"
+        ];
+        
+        let hintIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        let typingDelay = 100;
+        let erasingDelay = 50;
+        let nextHintDelay = 2000;
+        
+        function type() {
+            const currentHint = hints[hintIndex];
+            
+            if (isDeleting) {
+                input.setAttribute('placeholder', currentHint.substring(0, charIndex - 1));
+                charIndex--;
+            } else {
+                input.setAttribute('placeholder', currentHint.substring(0, charIndex + 1));
+                charIndex++;
+            }
+            
+            let typeSpeed = isDeleting ? erasingDelay : typingDelay;
+            
+            if (!isDeleting && charIndex === currentHint.length) {
+                typeSpeed = nextHintDelay;
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                hintIndex = (hintIndex + 1) % hints.length;
+                typeSpeed = 500;
+            }
+            
+            // Only type if input is not focused and empty
+            if(document.activeElement !== input && input.value === '') {
+                setTimeout(type, typeSpeed);
+            } else {
+                input.setAttribute('placeholder', "Type your message...");
+                setTimeout(() => {
+                    if(document.activeElement !== input && input.value === '') {
+                        isDeleting = false;
+                        charIndex = 0;
+                        type();
+                    }
+                }, 2000);
+            }
+        }
+        
+        setTimeout(type, 1000);
+        
+        input.addEventListener('focus', () => {
+             input.setAttribute('placeholder', "Type your message...");
+        });
+        input.addEventListener('blur', () => {
+             if(input.value === '') {
+                 isDeleting = false;
+                 charIndex = 0;
+                 setTimeout(type, 500);
+             }
+        });
+    });
+</script>
+
 </body>
 
 </html>

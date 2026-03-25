@@ -1654,7 +1654,7 @@ function showLoading() {
     const id = 'loading-' + Date.now();
     const div = document.createElement('div');
     div.id = id; div.className = 'message ai ai-loading msg-type-in';
-    div.innerHTML = `<div class="message-avatar pulse-glow"><i class="fas fa-bolt"></i></div><div class="message-content"><div class="message-sender">AnimeSense AI</div><div class="message-text"><div class="loading-dots"><span></span><span></span><span></span></div> Analyzing with AI...</div></div>`;
+    div.innerHTML = `<div class="message-avatar pulse-glow"><i class="fas fa-bolt"></i></div><div class="message-content"><div class="message-sender">AnimeSense AI</div><div class="message-text"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>`;
     chatMessagesInner.appendChild(div); scrollToBottom();
     return id;
 }
