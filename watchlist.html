@@ -53,10 +53,28 @@
                 <a href="/search" class="nav-link">Search</a>
                 <a href="/watchlist" class="nav-link active">Watchlist</a>
             </div>
-            <div class="nav-actions">
-                <a href="/search" class="btn btn-primary btn-nav"><i class="fas fa-plus"></i><span>Add
-                        Anime</span></a>
-                <button class="mobile-menu-btn" id="mobileMenuBtn"><span></span><span></span><span></span></button>
+                        <div class="nav-actions">
+                <!-- Auth: Login Button -->
+                <button class="auth-nav-login" id="authLoginBtn" onclick="FirebaseAuth.openModal('login')">
+                    <i class="fas fa-user"></i>
+                    <span>Login</span>
+                </button>
+                <!-- Auth: User Section -->
+                <div class="auth-user-section" id="authUserSection">
+                    <a href="/dashboard" class="auth-user-avatar" id="authUserAvatar" title="Dashboard"></a>
+                    <span class="auth-user-name" id="authUserName"></span>
+                    <button class="auth-logout-btn"
+                        onclick="FirebaseAuth.logoutUser().then(()=>location.href='/')">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+                <a href="/chat" class="btn btn-primary btn-nav btn-glow">
+                    <span>Open AI Chat</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                    <span></span><span></span><span></span>
+                </button>
             </div>
         </div>
     </nav>

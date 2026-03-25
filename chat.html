@@ -62,7 +62,7 @@
                 <a href="/watchlist" class="nav-link">Watchlist</a>
                 <a href="/dashboard" class="nav-link">Dashboard</a>
             </div>
-            <div class="nav-actions">
+                        <div class="nav-actions">
                 <!-- Auth: Login Button -->
                 <button class="auth-nav-login" id="authLoginBtn" onclick="FirebaseAuth.openModal('login')">
                     <i class="fas fa-user"></i>
@@ -77,6 +77,10 @@
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </button>
                 </div>
+                <a href="/chat" class="btn btn-primary btn-nav btn-glow">
+                    <span>Open AI Chat</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
                 <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
                     <span></span><span></span><span></span>
                 </button>
@@ -110,7 +114,7 @@
         </aside>
 
         <!-- Main -->
-        <main class="chat-main chat-container">
+        <main class="chat-main">
             <div class="chat-header">
                 <button class="toggle-sidebar-btn" onclick="toggleSidebar()" aria-label="Toggle sidebar">
                     <i class="fas fa-bars"></i>
@@ -124,6 +128,7 @@
                 </button>
             </div>
 
+            <div class="chat-container">
             <!-- Auth Gate (shown when not logged in) -->
             <div class="chat-auth-gate" id="chatAuthGate">
                 <div class="auth-gate-icon">
@@ -183,6 +188,7 @@
                     </div>
                     <p class="chat-disclaimer">Powered by AnimeSense Intelligence Engine. Responses are AI-generated and may not always be 100% accurate.</p>
                 </div>
+            </div>
             </div>
         </main>
     </div>
