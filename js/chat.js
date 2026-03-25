@@ -13,9 +13,9 @@ console.warn = function (...args) { if (DEBUG_MODE) _originalWarn.apply(console,
 const queryResponseCache = {}; // Quick memory cache
 
 // ══════════ AI CHAT MEMORY INTERCEPTOR (v12) ══════════
-const _originalLLMChat = typeof LLMRouter !== 'undefined' ? LLMRouter.chat : null;
+const _originalLLMChat = typeof LLMRouter !== 'undefined' ? apiChat : null;
 if (_originalLLMChat) {
-    LLMRouter.chat = async function (messages, options) {
+    apiChat = async function (messages, options) {
         if (typeof FirebaseDB !== 'undefined' && FirebaseDB.isReady()) {
             try {
                 const hist = await FirebaseDB.getChatHistory(5);
@@ -358,11 +358,7 @@ async function sendMessage() {
         }
     } catch (err) {
         removeLoading(loadingId);
-        appendMessage('ai', `### 🚨 Connection Failed
-
-I couldn't reach the intelligence engine right now. Please check your connection or wait a moment.
-
-<button onclick="askSuggestion('${text.replace(/'/g, "\'")}')" style="margin-top:10px; padding:8px 16px; border-radius:8px; border:none; background:var(--bg-tertiary); color:var(--text-primary); cursor:pointer; font-weight:600;"><i class="fas fa-redo"></i> Retry Message</button>`);
+        appendMessage('ai', `### ⚠️ Server error, please try again\n\nI couldn't reach the intelligence engine right now. Please check your connection or wait a moment.\n\n<button onclick="askSuggestion('${text.replace(/'/g, "\\'")}')" style="margin-top:10px; padding:8px 16px; border-radius:8px; border:none; background:var(--bg-tertiary); color:var(--text-primary); cursor:pointer; font-weight:600;"><i class="fas fa-redo"></i> Retry Message</button>`);
         console.error("API Error intercepted");
     }
     isProcessing = false; chatSendBtn.disabled = false; loadChatHistory(); scrollToBottom();
@@ -540,7 +536,7 @@ async function generateResponse(query) {
             // 7. Error Recovery System
             const fallbackMsg = `I couldn't find exact data, but here's what I know...`;
             try {
-                const llmFallback = await LLMRouter.chat([
+                const llmFallback = await apiChat([
                     { role: 'system', content: LLMRouter.ANIME_SYSTEM_PROMPT },
                     { role: 'user', content: `The external data API is down. Answer this question to the best of your implicit knowledge: "${query}"` }
                 ], { maxTokens: 600 });
@@ -599,7 +595,7 @@ async function handleCharacterBattle(query, entities) {
                 { role: 'system', content: LLMRouter.ANIME_SYSTEM_PROMPT },
                 { role: 'user', content: `Analyze this CHARACTER BATTLE: ${e1.name} (from ${anime1.title}) vs ${e2.name} (from ${anime2.title}).\n\nUser asked: "${query}"\n\nProvide a detailed breakdown covering:\n1. **Power Scaling** — Compare power levels, feats, and transformations\n2. **Abilities & Techniques** — Key attacks, special abilities, hax powers\n3. **Combat Style** — Fighting approach, strategy, adaptability\n4. **Universe Rules** — How each universe's power system works\n5. **Verdict** — Who would likely win and why\n\nBe analytical, specific, and reference actual feats from the anime. Provide a clear winner with reasoning.\n\n--- FIGHTER 1: ${e1.name} ---\nAnime: ${anime1.title}\n${ctx1}\n\n--- FIGHTER 2: ${e2.name} ---\nAnime: ${anime2.title}\n${ctx2}` }
             ];
-            const result = await LLMRouter.chat(messages, { maxTokens: 2000, temperature: 0.7 });
+            const result = await apiChat(messages, { maxTokens: 2000, temperature: 0.7 });
             response += `\n\n### 🧠 Battle Analysis\n\n${result.content}`;
             response += `\n\n> 🤖 *Battle analysis by AnimeSense AI Analysis Engine*`;
         } catch (e) {
@@ -749,7 +745,7 @@ async function handleDescribeAnime(query) {
         let probableTitle = knowledgeMatch ? knowledgeMatch.title.split('(')[0].trim() : null;
 
         try {
-            const llmResult = await LLMRouter.chat(extractMessages, { maxTokens: 200, temperature: 0.3 });
+            const llmResult = await apiChat(extractMessages, { maxTokens: 200, temperature: 0.3 });
             const parsed = JSON.parse(llmResult.content.replace(/```json\n?|\n?```/g, '').trim());
             keywords = parsed.keywords || [];
             if (!probableTitle) probableTitle = parsed.probable_title;
@@ -800,7 +796,7 @@ async function handleDescribeAnime(query) {
         ];
 
         try {
-            const result = await LLMRouter.chat(identifyMessages, { maxTokens: 1200, temperature: 0.6 });
+            const result = await apiChat(identifyMessages, { maxTokens: 1200, temperature: 0.6 });
             const kbTag = knowledgeMatch ? ' + Knowledge Base' : '';
             return `## 🔍 Found: ${bestMatch.title}\n\n${result.content}\n\n> 🤖 *Identified by AnimeSense Intelligence Engine${kbTag}*`;
         } catch (e) {
@@ -1002,7 +998,7 @@ async function handleLLMQuery(query, queryType, anime) {
         { role: 'user', content: `${typeHints[queryType] || ''}\n\nUser question: "${query}"${memoryCtx ? '\n\nUser context:' + memoryCtx : ''}\n\n${context}${jsonHint}` }
     ];
     try {
-        const result = await LLMRouter.chat(messages, { maxTokens: 1000, temperature: 0.6 });
+        const result = await apiChat(messages, { maxTokens: 1000, temperature: 0.6 });
         
         if (queryType === 'FACTUAL') {
             return result.content;
@@ -1051,7 +1047,7 @@ async function handleLLMDetail(query, anime) {
         { role: 'user', content: `The user asked: "${query}"\n\nProvide an intelligent response in exactly this JSON format:\n{"response": "Your markdown answer (intro, details, value-add) ignoring suggestions.", "suggestions": ["Dynamic action 1", "Dynamic action 2", "Dynamic action 3"]}\n\n1. A short intro (2-3 lines)\n2. Key details (Episodes, Genre, Status)\n3. Set 3 dynamic suggestions tailored to this anime.\n\nDo NOT use "Are you looking for X or Y". Be professional, confident, and clean.\n\n${context}` }
     ];
     try {
-        const result = await LLMRouter.chat(messages, { maxTokens: 1000, temperature: 0.6 });
+        const result = await apiChat(messages, { maxTokens: 1000, temperature: 0.6 });
         let parsed;
         try {
             const jsonMatch = result.content.match(/\{[\s\S]*\}/);
@@ -1092,7 +1088,7 @@ async function handleTrending(query) {
                 { role: 'user', content: `User asked: "${query}"\n\nPresent the trending anime in a clean numbered list with scores, episodes, genres, and a short hook for each. Use a ## heading.\n\n${context}` }
             ];
             try {
-                const result = await LLMRouter.chat(messages, { maxTokens: 1500, temperature: 0.6 });
+                const result = await apiChat(messages, { maxTokens: 1500, temperature: 0.6 });
                 return result.content + `\n\n> 🤖 *AnimeSense Intelligence Engine · Live trending data from AnimeSense Data System*`;
             } catch (e) {
                 return buildTrendingFallback(results.data);
@@ -1127,7 +1123,7 @@ async function handleRecommend(query) {
                 { role: 'user', content: `User asked: "${query}"\n\nRecommend the top 5 anime from this list. For each, give a compelling reason to watch. Format with ## heading.\n\n${context}` }
             ];
             try {
-                const result = await LLMRouter.chat(messages, { maxTokens: 1200, temperature: 0.8 });
+                const result = await apiChat(messages, { maxTokens: 1200, temperature: 0.8 });
                 return result.content + `\n\n> 🤖 *AnimeSense Intelligence Engine · AnimeSense Data System*`;
             } catch (e) {
                 const list = results.data.slice(0, 5).map((a, i) => `${i + 1}. **${a.title}** — ⭐ ${a.score || '?'}/10 | ${a.episodes || '?'} eps\n   - ${(a.genres || []).map(g => g.name).join(', ')}`).join('\n\n');
@@ -1148,7 +1144,7 @@ async function handleRecommendSimilar(anime) {
                 { role: 'user', content: `Recommend anime similar to "${anime.title}". Pick the top 5 and explain why fans of ${anime.title} would enjoy each.\n\n${context}` }
             ];
             try {
-                const result = await LLMRouter.chat(messages, { maxTokens: 1200, temperature: 0.8 });
+                const result = await apiChat(messages, { maxTokens: 1200, temperature: 0.8 });
                 return result.content + `\n\n> 🤖 *AnimeSense Intelligence Engine · AnimeSense Data System*`;
             } catch (e) { }
             const list = recs.data.slice(0, 5).map((r, i) => `${i + 1}. **${r.entry.title}** (${r.votes} votes)`).join('\n');
@@ -1217,7 +1213,7 @@ async function handleSmartRecommendation(query) {
         ];
 
         try {
-            const result = await LLMRouter.chat(messages, { maxTokens: 1200, temperature: 0.8 });
+            const result = await apiChat(messages, { maxTokens: 1200, temperature: 0.8 });
             return `${result.content}\n\n> 🧠 *Personalized by AnimeSense Intelligence Engine · Based on your ${allTitles.length} searches + ${watchlist.length} watchlist entries*`;
         } catch (e) {
             // Fallback: simple list
@@ -1279,7 +1275,7 @@ async function handleComparison(query, nameA, nameB) {
                 { role: 'system', content: LLMRouter.ANIME_SYSTEM_PROMPT },
                 { role: 'user', content: `Compare these two anime in detail. Discuss storytelling style, themes, power systems, character development, pacing, animation quality, and overall appeal. Reference specific arcs and the authors' approaches. Be specific and analytical. Do NOT repeat the comparison table — it's already shown above.\n\nUser question: "${query}"\n\n--- ANIME A ---\n${contextA}\n\n--- ANIME B ---\n${contextB}` }
             ];
-            const result = await LLMRouter.chat(messages, { maxTokens: 1500, temperature: 0.7 });
+            const result = await apiChat(messages, { maxTokens: 1500, temperature: 0.7 });
             const kbTag = (typeof AnimeKnowledge !== 'undefined' && (AnimeKnowledge.lookup(animeA.title) || AnimeKnowledge.lookup(animeB.title))) ? ' + Knowledge Base' : '';
             response += `\n\n### 🧠 AI Analysis\n\n${result.content}`;
             response += `\n\n> 🤖 *AI comparison by AnimeSense AI Analysis Engine${kbTag}*`;
@@ -1341,7 +1337,7 @@ async function handleSmartRecommend(query) {
                 { role: 'user', content: `User asked: "${query}"${personalNote}\n\nRecommend the top 5 anime from this list. For each, give a compelling reason to watch. Use a ## heading and number the list.\n\n${context}` }
             ];
             try {
-                const result = await LLMRouter.chat(messages, { maxTokens: 1500, temperature: 0.8 });
+                const result = await apiChat(messages, { maxTokens: 1500, temperature: 0.8 });
                 let resp = result.content;
                 if (userMemory.watched.length > 0) {
                     resp += `\n\n> 🧠 *Personalized based on your history: ${userMemory.watched.slice(-5).join(', ')}*`;
@@ -1385,7 +1381,7 @@ async function handleGeneralLLM(query) {
         { role: 'user', content: userPromptContent }
     ];
     try {
-        const result = await LLMRouter.chat(messages, { maxTokens: 1200, temperature: 0.7 });
+        const result = await apiChat(messages, { maxTokens: 1200, temperature: 0.7 });
 
         // Return without footer for simple factual responses
         if (isFactualHint) return result.content;
