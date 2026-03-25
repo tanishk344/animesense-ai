@@ -21,6 +21,15 @@
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/animations.css">
     <link rel="stylesheet" href="css/search.css">
+
+<!-- Google tag (gtag.js) Basic Analytics Setup -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ANIME_SENSE"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-ANIME_SENSE');
+</script>
 </head>
 
 <body>
@@ -55,7 +64,8 @@
                 <a href="/search" class="nav-link active">Search</a>
                 <a href="/watchlist" class="nav-link">Watchlist</a>
             </div>
-                        <div class="nav-actions">
+                                    <div class="nav-actions">
+                <button class="upgrade-pro-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; cursor: pointer; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); margin-right: 8px; display: flex; align-items: center; gap: 6px;"><i class="fas fa-crown"></i> Upgrade to Pro</button>
                 <!-- Auth: Login Button -->
                 <button class="auth-nav-login" id="authLoginBtn" onclick="FirebaseAuth.openModal('login')">
                     <i class="fas fa-user"></i>

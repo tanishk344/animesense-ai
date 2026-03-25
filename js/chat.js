@@ -358,8 +358,12 @@ async function sendMessage() {
         }
     } catch (err) {
         removeLoading(loadingId);
-        appendMessage('ai', 'Sorry, I encountered an error. Please try again.');
-        console.error("Failed to load data");
+        appendMessage('ai', `### 🚨 Connection Failed
+
+I couldn't reach the intelligence engine right now. Please check your connection or wait a moment.
+
+<button onclick="askSuggestion('${text.replace(/'/g, "\'")}')" style="margin-top:10px; padding:8px 16px; border-radius:8px; border:none; background:var(--bg-tertiary); color:var(--text-primary); cursor:pointer; font-weight:600;"><i class="fas fa-redo"></i> Retry Message</button>`);
+        console.error("API Error intercepted");
     }
     isProcessing = false; chatSendBtn.disabled = false; loadChatHistory(); scrollToBottom();
 }
@@ -1638,7 +1642,11 @@ function generateFallbackResponse() {
 function appendMessage(role, content, animate = true) {
     const div = document.createElement('div');
     div.className = `message ${role} ${animate ? 'msg-type-in' : ''}`;
-    div.innerHTML = `<div class="message-avatar">${role === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-bolt"></i>'}</div><div class="message-content"><div class="message-sender">${role === 'user' ? 'You' : 'AnimeSense AI'}</div><div class="message-text">${formatMarkdown(content)}</div>${role === 'ai' ? '<div class="message-actions"><button class="message-action-btn" onclick="copyMessage(this)" title="Copy"><i class="fas fa-copy"></i> Copy</button></div>' : ''}</div>`;
+    div.innerHTML = `<div class="message-avatar">${role === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-bolt"></i>'}</div><div class="message-content"><div class="message-sender">${role === 'user' ? 'You' : 'AnimeSense AI'}</div><div class="message-text">${formatMarkdown(content)}</div>${role === 'ai' ? `<div class="message-actions">
+<button class="message-action-btn" onclick="copyMessage(this)" title="Copy Text"><i class="fas fa-copy"></i></button>
+<button class="message-action-btn" onclick="askSuggestion(lastDiscussedAnimeTitle || 'Hello')" title="Regenerate Response"><i class="fas fa-redo"></i></button>
+<button class="message-action-btn" title="Bad Response"><i class="fas fa-thumbs-down"></i></button>
+</div>` : ''}</div>`;
     chatMessagesInner.appendChild(div);
     
     const messages = document.querySelectorAll(".message");
